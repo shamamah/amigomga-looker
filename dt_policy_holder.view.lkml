@@ -106,9 +106,10 @@ view: dt_policy_holder {
     sql: ${TABLE}.state ;;
   }
 
+  #Changed type from STRING to ZIPCODE
   dimension: zip {
     label: "ZIP"
-    type: string
+    type: zipcode
     sql: ${TABLE}.zip ;;
   }
 
