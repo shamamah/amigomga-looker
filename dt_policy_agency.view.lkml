@@ -20,21 +20,18 @@ view: dt_policy_agency {
 
   dimension: agency_code {
     label: "Agency Code"
-    view_label: "Policy"
     type: string
     sql: ${TABLE}.agency_code ;;
   }
 
   dimension: agency_name {
     label: "Agency Name"
-    view_label: "Policy"
     type: string
     sql: ${TABLE}.agency_name ;;
   }
 
   dimension: agency_address {
     label: "Agency Address"
-    view_label: "Policy"
     type: string
     sql: ${TABLE}.agency_address ;;
   }

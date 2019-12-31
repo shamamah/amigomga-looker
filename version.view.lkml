@@ -12,4 +12,22 @@ view: version {
     type: number
     sql: ${TABLE}.version_id ;;
   }
+
+  dimension: lob_name {
+    label: "LOB"
+    type: string
+    sql: ${TABLE}.lobname ;;
+  }
+
+  dimension: state {
+    label: "State"
+    type: string
+    sql: ${TABLE}.state ;;
+  }
+
+  dimension: commercial_name1 {
+    label: "Company"
+    type: string
+    sql: ${TABLE}.commercial_name1 ;;
+  }
 }

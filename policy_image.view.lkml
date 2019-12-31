@@ -45,9 +45,9 @@ view: policy_image {
   }
 
   dimension_group: trans {
-    hidden: yes
+    label: "Transaction"
     type: time
-    timeframes: [raw, date, week, month, year]
+    timeframes: [time, date, week, month, quarter, year]
     sql: ${TABLE}.trans_date ;;
   }
 
@@ -58,18 +58,18 @@ view: policy_image {
     sql: ${TABLE}.added_date ;;
   }
 
-  dimension: days_from_offer_generation_to_policy_issue {
-    hidden: yes
-    type: number
-    sql: DATEDIFF(day,${added_raw}, ${trans_raw}) ;;
-  }
-
-  dimension: days_from_offer_generation_to_policy_issue_tier {
-    hidden: yes
-    type: tier
-    tiers: [0, 30, 60, 90]
-    sql: ${days_from_offer_generation_to_policy_issue} ;;
-  }
+#   dimension: days_from_offer_generation_to_policy_issue {
+#     hidden: yes
+#     type: number
+#     sql: DATEDIFF(day,${added_raw}, ${trans_raw}) ;;
+#   }
+#
+#   dimension: days_from_offer_generation_to_policy_issue_tier {
+#     hidden: yes
+#     type: tier
+#     tiers: [0, 30, 60, 90]
+#     sql: ${days_from_offer_generation_to_policy_issue} ;;
+#   }
 
   dimension: transreason_id {
     hidden: yes
@@ -96,7 +96,6 @@ view: policy_image {
   }
 
   dimension: policyimage_num {
-    hidden: yes
     label: "Image Number"
     type: string
     sql: ${TABLE}.policyimage_num ;;
@@ -110,39 +109,36 @@ view: policy_image {
   }
 
   dimension: renewal_ver {
-    hidden: yes
-    label: "Renewal Version"
+    label: "Renewal Term"
     type: string
     sql: ${TABLE}.renewal_ver ;;
   }
 
   dimension_group: eff {
-    label: "Effective"
+    label: "Term Effective"
     type: time
-    timeframes: [date]
+    timeframes: [date, week, month, quarter, year]
     sql: ${TABLE}.eff_date ;;
   }
 
   dimension_group: exp {
-    label: "Expiration"
+    label: "Term Expiration"
     type: time
-    timeframes: [date]
+    timeframes: [date, week, month, quarter, year]
     sql: ${TABLE}.exp_date ;;
   }
 
   dimension_group: teff {
-    hidden: yes
     label: "Transaction Effective"
     type: time
-    timeframes: [date]
+    timeframes: [date, week, month, quarter, year]
     sql: ${TABLE}.teff_date ;;
   }
 
   dimension_group: texp {
-    hidden: yes
     label: "Transaction Expiration"
     type: time
-    timeframes: [date]
+    timeframes: [date, week, month, quarter, year]
     sql: ${TABLE}.texp_date ;;
   }
 
@@ -162,71 +158,58 @@ view: policy_image {
   }
 
   dimension: premium_written {
-    hidden: yes
-    label: "Written Premium"
+    label: "Prem-Written"
     type: number
     value_format_name: usd
     sql: ${TABLE}.premium_written ;;
   }
 
   dimension: premium_fullterm {
-    hidden: yes
-    label: "Fullterm Premium"
+    label: "Prem-Full Term"
     type: number
     value_format_name: usd
     sql: ${TABLE}.premium_fullterm ;;
   }
 
   dimension: premium_chg_written {
-    hidden: yes
+    label: "Prem-Change in Written"
     type: number
+    value_format_name: usd
     sql: ${TABLE}.premium_chg_written ;;
   }
 
   dimension: premium_chg_fullterm {
-    hidden: yes
+    label: "Prem-Change in Full Term"
     type: number
+    value_format_name: usd
     sql: ${TABLE}.premium_chg_fullterm ;;
   }
 
-  dimension: days_to_convert {
-    hidden: yes
-    label: "Days to Convert"
-    type: number
-    sql: DateDiff(d,${added_date},${trans_date}) ;;
+  dimension_group: received {
+    label: "Received"
+    type: time
+    timeframes: [date, week, month, quarter, year]
+    sql: ${TABLE}.received_date ;;
   }
 
-  dimension: days_to_convert_tier {
-    hidden: yes
-    label: "Days to Convert - Tier"
-    type: tier
-    style: integer
-    tiers: [0, 31, 61, 91, 365]
-    sql: ${days_to_convert} ;;
+  measure: count {
+    label: "Count"
+    type: count
+    drill_fields: [policyimage_drill*]
   }
 
-  measure: average_days_from_offer_generation_to_policy_issue {
-    hidden: yes
-    type: average
-    sql: ${days_from_offer_generation_to_policy_issue} ;;
-    value_format_name: decimal_2
-  }
 
-  measure: premium_chg_written_sum {
-    hidden: yes
-    label: "Written Premium"
-    type: sum_distinct
-    value_format_name: usd
-    sql_distinct_key: ${compound_primary_key} ;;
-    sql: ${premium_chg_written} ;;
-  }
-
-  measure: avg_days_to_convert {
-    hidden: yes
-    label: "Average Days to Convert"
-    type: average_distinct
-    value_format: "0.#"
-    sql_distinct_key: ${compound_primary_key} ;;
-    sql: DateDiff(d,${added_date},${trans_date}) ;;
+  set: policyimage_drill {
+    fields: [
+      policy,
+      policyimage_num,
+      eff_date,
+      exp_date,
+      teff_date,
+      texp_date,
+      trans_type.dscr,
+      trans_reason.dscr,
+      trans_date_date
+    ]
   }
 }

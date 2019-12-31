@@ -26,6 +26,7 @@ view: company_state_lob {
   }
 
   dimension: companystatelob_id {
+    primary_key: yes
     hidden: yes
     type: number
     sql: ${TABLE}.companystatelob_id ;;

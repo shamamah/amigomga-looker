@@ -31,6 +31,11 @@ view: policy {
   }
 
   dimension: current_policy {
+    link: {
+      label: "Open in Diamond"
+      url: "https://c76-prod.diamondasaservice.com/DiamondWeb/Employee/Policy/{{ value }}"
+      icon_url: "http://www.insuresoft.com/favicon.ico"
+    }
     type: string
     label: "Number"
     sql: ${TABLE}.current_policy ;;
@@ -47,5 +52,43 @@ view: policy {
     label: "Form Type"
     type: string
     sql: ${TABLE}.external_policy_source ;;
+  }
+
+  dimension: nonrenewreason_id {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.nonrenewreason_id ;;
+  }
+
+  dimension: quotesource_id {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.quotesource_id ;;
+  }
+
+  dimension_group: first_eff_date {
+    label: "First Effective Date"
+    type: time
+    timeframes: [date, week, month, quarter, year, day_of_week]
+    sql: ${TABLE}.first_eff_date ;;
+  }
+
+  measure: count {
+    label: "Count"
+    type: count
+    drill_fields: [policy_drill*]
+#     link: {
+#       label: "Sort by Policy"
+#       url: "{{ link }}&sorts=policy.current_policy"
+#     }
+  }
+
+
+  set: policy_drill {
+    fields: [
+      current_policy,
+      policy_current_status.description,
+      first_eff_date_date
+    ]
   }
 }
