@@ -172,7 +172,7 @@ view: policy_image {
   }
 
   dimension: premium_chg_written {
-    label: "Prem-Change in Written"
+    hidden: yes
     type: number
     value_format_name: usd
     sql: ${TABLE}.premium_chg_written ;;
@@ -198,6 +198,12 @@ view: policy_image {
     drill_fields: [policyimage_drill*]
   }
 
+  measure: sum_premium_chg_written {
+    label: "Prem-Change in Written"
+    type: sum
+    value_format_name: usd
+    sql: ${TABLE}.premium_chg_written ;;
+  }
 
   set: policyimage_drill {
     fields: [
