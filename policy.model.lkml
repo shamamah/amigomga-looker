@@ -237,4 +237,18 @@ explore: policy {
     relationship: one_to_many
     sql_on: ${additional_interest_type.additionalinteresttype_id} = ${additional_interest.additionalinteresttype_id} ;;
   }
+
+  join: claim_control {
+    view_label: "Claim"
+    type: left_outer
+    relationship: many_to_one
+    sql_on: ${claim_control.policy_id} = ${policy.policy_id} ;;
+  }
+
+  join: dt_summarized_claim_level_financials {
+    view_label: "Claim  Financials"
+    type: left_outer
+    relationship: one_to_one
+    sql_on: ${claim_control.claimcontrol_id} = ${dt_summarized_claim_level_financials.claimcontrol_id} ;;
+  }
 }
