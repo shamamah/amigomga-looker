@@ -1,4 +1,4 @@
-connection: "c76-prod"
+connection: "c76-reporting"
 
 # include all the views
 include: "*.view"
@@ -7,7 +7,7 @@ fiscal_month_offset: 0
 week_start_day: sunday
 
 explore: policy {
-  group_label: "Diamond Analytics (PROD)"
+  group_label: "Diamond Analytics (REPORT)"
   label: "Policy"
   view_label: "Policy"
 
@@ -252,3 +252,23 @@ explore: policy {
     sql_on: ${claim_control.claimcontrol_id} = ${dt_summarized_claim_level_financials.claimcontrol_id} ;;
   }
 }
+connection: "c76-reporting"
+
+include: "/views/*.view.lkml"                # include all views in the views/ folder in this project
+# include: "/**/view.lkml"                   # include all views in this project
+# include: "my_dashboard.dashboard.lookml"   # include a LookML dashboard called my_dashboard
+
+# # Select the views that should be a part of this model,
+# # and define the joins that connect them together.
+#
+# explore: order_items {
+#   join: orders {
+#     relationship: many_to_one
+#     sql_on: ${orders.id} = ${order_items.order_id} ;;
+#   }
+#
+#   join: users {
+#     relationship: many_to_one
+#     sql_on: ${users.id} = ${orders.user_id} ;;
+#   }
+# }

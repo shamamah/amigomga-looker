@@ -1,4 +1,4 @@
-connection: "c76-prod"
+connection: "c76-reporting"
 
 # include all the views
 include: "*.view"
@@ -7,7 +7,7 @@ fiscal_month_offset: 0
 week_start_day: sunday
 
 explore: billing_cash {
-  group_label: "Diamond Analytics (PROD)"
+  group_label: "Diamond Analytics (REPORT)"
   label: "Billing"
   view_label: "Billing"
 
