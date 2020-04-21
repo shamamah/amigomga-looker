@@ -260,8 +260,4 @@ explore: dt_retention_policy_by_agent {
   group_label: "Diamond Analytics (REPORT)"
   label: "Retention"
   view_label: "Retention"
-  access_filter: {
-    field: dt_retention_policy_by_agent.code
-    user_attribute: agency_code
-  }
 }
