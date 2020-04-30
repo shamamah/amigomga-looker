@@ -53,4 +53,11 @@ explore: billing_cash {
     relationship: one_to_many
     sql_on: ${billing_reason.billingreason_id} = ${billing_cash.billingreason_id} ;;
   }
+  join: payment_processor_payment_audit {
+    view_label: "Billing"
+    type: left_outer
+    relationship: one_to_many
+    sql_on: ${payment_processor_payment_audit.policy_id} = ${billing_cash.policy_id} AND
+    ${billing_cash.billingcash_num} = ${payment_processor_payment_audit.billingcash_num};;
+  }
 }

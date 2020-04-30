@@ -248,7 +248,7 @@ view: dt_claim_transactions_as_of {
   }
 
   dimension_group: eff_date {
-    hidden: yes
+    hidden: no
     label: "As Of"
     type: time
     timeframes: [date]

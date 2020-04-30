@@ -146,6 +146,12 @@ view: claim_control {
     sql: ${TABLE}.policy_id ;;
   }
 
+  dimension: policyimage_num {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.policyimage_num ;;
+  }
+
   dimension_group: reported_date {
     type: time
     label: "Reported"
