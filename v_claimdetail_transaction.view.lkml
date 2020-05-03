@@ -9,7 +9,19 @@ view: v_claimdetail_transaction {
 
     measure: feature_amount {
       type:  sum
-      sql: ${TABLE}.Amount ;;
+      sql: CASE WHEN ${TABLE}.cat_dscr <> 'Loss Reserve Change'
+          AND ${TABLE}.is_offset_payment = 1 THEN -${TABLE}.Amount
+            ELSE ${TABLE}.Amount END;;
+      value_format_name: usd
+    }
+
+    #Need to calculate this separately to SUBTRACT for true Loss Reserve
+    measure: loss_payment_amount {
+      type:  sum
+      hidden: yes
+      sql: CASE WHEN ${TABLE}.cat_dscr = 'Loss Payment' AND
+        ${TABLE}.is_offset_payment = 1 THEN -${TABLE}.Amount
+        ELSE ${TABLE}.Amount END;;
       value_format_name: usd
     }
 

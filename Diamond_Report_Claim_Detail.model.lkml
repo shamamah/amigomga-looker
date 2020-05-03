@@ -13,13 +13,13 @@ explore: v_claimdetail_transaction {
     sql_on: ${claim_feature.claimcontrol_id} = ${v_claimdetail_transaction.claimcontrol_id}
     AND ${claim_feature.claimant_num} = ${v_claimdetail_transaction.claimant_num}
     AND ${v_claimdetail_transaction.claimfeature_num} = ${claim_feature.claimfeature_num};;
-    relationship: one_to_many
+    relationship: many_to_one
   }
 
   join: claim_control {
   type: inner
   sql_on: ${v_claimdetail_transaction.claimcontrol_id} = ${claim_control.claimcontrol_id};;
-  relationship: one_to_many
+  relationship: many_to_one
   }
 
   join: policy_image {
@@ -29,5 +29,10 @@ explore: v_claimdetail_transaction {
     relationship: many_to_one
   }
 
+  join: v_agency {
+    type: inner
+    sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
+    relationship: many_to_one
+  }
 
 }
