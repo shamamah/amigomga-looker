@@ -23,13 +23,14 @@ join: company_state_lob {
 join: policy_image {
   view_label: "Policy"
   type: inner
+  fields: []
   relationship: one_to_one
   sql_on: ${policy_image.policy_id} = ${dt_itd_premiums.policy_id}
   AND ${policy_image.renewal_ver} = ${dt_itd_premiums.renewal_ver};;
 }
 join: dt_policyimage_num_unique {
   view_label: "TEST"
-  type: left_outer
+  type: inner
   relationship: one_to_many
   sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
   AND ${policy_image.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
@@ -38,6 +39,7 @@ join: dt_policyimage_num_unique {
 join: v_vehicle {
     view_label: "Vehicle"
     type: left_outer
+    fields: []
     relationship: one_to_many
     sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle.policy_id}
     AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle.policyimage_num} ;;
@@ -47,6 +49,7 @@ join: v_vehicle {
 join: driver {
   view_label: "Driver"
   type: left_outer
+  fields: []
   relationship: one_to_many
   sql_on: ${v_vehicle.policy_id} = ${driver.policy_id} AND
   ${driver.policyimage_num} = ${v_vehicle.policyimage_num} AND
@@ -57,6 +60,7 @@ join: driver {
   join: driver_name_link {
     view_label: "Driver"
     type: left_outer
+    fields: []
     relationship: one_to_many
     sql_on: ${driver_name_link.policy_id} = ${driver.policy_id}
           AND ${driver_name_link.policyimage_num} = ${driver.policyimage_num}
@@ -66,6 +70,7 @@ join: driver {
   join: driver_name {
     view_label: "Driver"
     type: left_outer
+    fields: []
     relationship: one_to_one
     sql_on: ${driver_name.name_id} = ${driver_name_link.name_id} ;;
   }
@@ -73,6 +78,7 @@ join: driver {
   join: marital_status {
     view_label: "Driver"
     type: left_outer
+    fields: []
     relationship: one_to_many
     sql_on: ${marital_status.maritalstatus_id} = ${driver_name.maritalstatus_id} ;;
   }
@@ -80,6 +86,7 @@ join: driver {
   join: sex {
     view_label: "Driver"
     type: left_outer
+    fields: []
     relationship: one_to_many
     sql_on: ${sex.sex_id} = ${driver_name.sex_id} ;;
   }
