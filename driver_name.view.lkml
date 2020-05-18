@@ -39,7 +39,7 @@ view: driver_name {
     label: "Age Range"
     type: tier
     style: integer
-    tiers: [16,21,31,41,51,61,65]
+    tiers: [16,22,32,42,52,62,65]
     sql: DATEDIFF(year, ${birth_date}, GETDATE());;
   }
 
