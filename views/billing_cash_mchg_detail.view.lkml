@@ -3,6 +3,7 @@ view: billing_cash_mchg_detail {
 
   dimension_group: added {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       date,
@@ -16,23 +17,34 @@ view: billing_cash_mchg_detail {
     sql: ${TABLE}.added_date ;;
   }
 
-  dimension: amount {
-    type: string
+  measure: amount {
+    label: "Mchg Amount"
+    type: sum
     sql: ${TABLE}.amount ;;
+  }
+
+  dimension: bcmd_primary_key {
+    primary_key: yes
+    hidden: yes
+    type: string
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.billingcashdetail_num, ' ', ${TABLE}.billingchargecredit_num) ;;
   }
 
   dimension: billingcashdetail_num {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingcashdetail_num ;;
   }
 
   dimension: billingchargecredit_num {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingchargecredit_num ;;
   }
 
   dimension_group: last_modified {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       time,
@@ -47,6 +59,7 @@ view: billing_cash_mchg_detail {
 
   dimension_group: pcadded {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       time,
@@ -61,11 +74,8 @@ view: billing_cash_mchg_detail {
 
   dimension: policy_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.policy_id ;;
   }
 
-  measure: count {
-    type: count
-    drill_fields: []
-  }
 }

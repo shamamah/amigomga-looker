@@ -3,30 +3,20 @@ view: billing_cash_detail_type {
 
   dimension: billingcashdetailtype_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingcashdetailtype_id ;;
   }
 
   dimension: dscr {
+    label: "Detail Description"
     type: string
     sql: ${TABLE}.dscr ;;
   }
 
-  dimension_group: last_modified {
-    type: time
-    timeframes: [
-      raw,
-      time,
-      date,
-      week,
-      month,
-      quarter,
-      year
-    ]
-    sql: ${TABLE}.last_modified_date ;;
-  }
 
   dimension_group: pcadded {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       time,
@@ -39,8 +29,5 @@ view: billing_cash_detail_type {
     sql: ${TABLE}.pcadded_date ;;
   }
 
-  measure: count {
-    type: count
-    drill_fields: []
-  }
+
 }

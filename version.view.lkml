@@ -17,6 +17,7 @@ view: version {
     label: "LOB"
     type: string
     sql: ${TABLE}.lobname ;;
+    drill_fields: [state]
   }
 
   dimension: state {
@@ -29,5 +30,6 @@ view: version {
     label: "Company"
     type: string
     sql: ${TABLE}.commercial_name1 ;;
+    drill_fields: [lob_name]
   }
 }

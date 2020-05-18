@@ -16,33 +16,49 @@ view: billing_cash_detail {
     sql: ${TABLE}.added_date ;;
   }
 
+  dimension: bcd_primary_key {
+    primary_key: yes
+    hidden: yes
+    type: string
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.billingcashdetail_num) ;;
+  }
+
   dimension: agencyactivity_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.agencyactivity_id ;;
   }
 
-  dimension: amount {
-    type: string
-    sql: ${TABLE}.amount ;;
+  measure: amount {
+    type: sum
+    sql: -${TABLE}.amount ;;
+    drill_fields: [view.field_1]
+    link: {
+    url: "{{https://amigomga.looker.com/looks/45?}}&pivots=view.field_1&fill_fields=view.field_1"
+    }
   }
 
   dimension: billingcash_num {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingcash_num ;;
   }
 
   dimension: billingcashdetail_num {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingcashdetail_num ;;
   }
 
   dimension: billingcashdetailtype_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.billingcashdetailtype_id ;;
   }
 
   dimension_group: last_modified {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       time,
@@ -57,6 +73,7 @@ view: billing_cash_detail {
 
   dimension_group: pcadded {
     type: time
+    hidden: yes
     timeframes: [
       raw,
       time,
@@ -71,21 +88,20 @@ view: billing_cash_detail {
 
   dimension: policy_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.policy_id ;;
   }
 
   dimension: reappliedfromdetail_num {
     type: number
+    hidden: yes
     sql: ${TABLE}.reappliedfromdetail_num ;;
   }
 
   dimension: renewal_ver {
     type: number
+    hidden: yes
     sql: ${TABLE}.renewal_ver ;;
   }
 
-  measure: count {
-    type: count
-    drill_fields: []
-  }
 }

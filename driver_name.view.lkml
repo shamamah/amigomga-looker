@@ -29,6 +29,12 @@ view: driver_name {
     sql: ${TABLE}.added_date ;;
   }
 
+  dimension: age {
+    label: "Age"
+    type: number
+    sql: DATEDIFF(year, ${birth_date}, GETDATE()) ;;
+  }
+
   dimension: best_contact_time_details {
     hidden: yes
     type: string
