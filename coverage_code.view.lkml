@@ -27,7 +27,7 @@ view: coverage_code {
   }
 
   dimension: coveragetype {
-    label: "Type"
+    label: "Liab, Phys, PIP"
     type: string
     sql: ${TABLE}.coveragetype ;;
   }

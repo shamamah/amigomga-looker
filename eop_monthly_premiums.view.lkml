@@ -43,6 +43,11 @@ view: eop_monthly_premiums {
     sql: ${TABLE}.coveragecode_id ;;
   }
 
+  dimension: liab_phys {
+    type: string
+    sql: ${TABLE}.coveragecode_id ;;
+  }
+
   dimension: version_id {
     type: number
     hidden: yes
@@ -53,6 +58,12 @@ view: eop_monthly_premiums {
     type: string
     hidden: yes
     sql: ${TABLE}.policy ;;
+  }
+
+  dimension: new_renewal {
+    label: "New vs. Renewal"
+    type: string
+    sql: CASE WHEN ${TABLE}.renewal_ver=1 THEN 'New' ELSE 'Renewal' END ;;
   }
 
   dimension: renewal_ver {
