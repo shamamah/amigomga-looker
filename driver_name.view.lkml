@@ -38,6 +38,7 @@ view: driver_name {
   dimension: age_range {
     label: "Age Range"
     type: tier
+    style: integer
     tiers: [16,21,31,41,51,61,65]
     sql: DATEDIFF(year, ${birth_date}, GETDATE());;
   }
