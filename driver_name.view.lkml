@@ -35,6 +35,13 @@ view: driver_name {
     sql: DATEDIFF(year, ${birth_date}, GETDATE()) ;;
   }
 
+  dimension: age_range {
+    label: "Age Range"
+    type: tier
+    tiers: [16,21,31,41,51,61,65]
+    sql: DATEDIFF(year, ${birth_date}, GETDATE());;
+  }
+
   dimension: best_contact_time_details {
     hidden: yes
     type: string
