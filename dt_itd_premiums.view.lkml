@@ -92,6 +92,18 @@ view: dt_itd_premiums {
     sql: ${TABLE}.totalwrittenpremium ;;
   }
 
+  measure: count {
+    label: "Policy Count"
+    type: count_distinct
+    sql: ${TABLE}.policy_id ;;
+  }
+
+  measure: avgEarned {
+    label: "Avg Earned"
+    type: average
+    value_format: "0.##"
+    sql: ${TABLE}.totalearnedpremium ;;
+  }
 
   dimension: new_renewal {
     label: "New vs. Renewal"
