@@ -8,6 +8,7 @@ view: dt_itd_premiums {
         policy_id,
 --        Policyimage_num,
         renewal_ver,
+        unit_num,
         SUM(TotalEarnedPremium) as TotalEarnedPremium,
         SUM(TotalWrittenPremium) as TotalWrittenPremium
         FROM (SELECT V.company_id,
@@ -18,6 +19,7 @@ view: dt_itd_premiums {
             policy_id,
 --            Policyimage_num,
             renewal_ver,
+            unit_num,
             SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
             SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
           FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
@@ -33,7 +35,8 @@ view: dt_itd_premiums {
             CCV.caption,
             policy_id,
  --           Policyimage_num,
-            renewal_ver
+            renewal_ver,
+            unit_num
 
 
           UNION ALL
@@ -46,6 +49,7 @@ view: dt_itd_premiums {
             policy_id,
 --            Policyimage_num,
             renewal_ver,
+            unit_num,
             SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
             SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
           FROM EOPPremiums EMP WITH(NOLOCK)
@@ -61,7 +65,8 @@ view: dt_itd_premiums {
             CCV.caption,
             policy_id,
  --           Policyimage_num,
-            renewal_ver) xx
+            renewal_ver,
+            unit_num) xx
           Group by company_id,
             state_id,
             lob_id,
@@ -69,7 +74,8 @@ view: dt_itd_premiums {
             caption,
             policy_id,
   --          Policyimage_num,
-            renewal_ver
+            renewal_ver,
+            unit_num
  ;;
 }
 
@@ -77,7 +83,7 @@ view: dt_itd_premiums {
   dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id) ;;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num) ;;
   }
 
   measure: total_earned_premium {
@@ -129,6 +135,13 @@ view: dt_itd_premiums {
     hidden: yes
     sql: ${TABLE}.lob_id ;;
   }
+
+  dimension: unit_num {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.unit_num ;;
+  }
+
 
   dimension: coveragecode_id {
     type: number

@@ -28,22 +28,35 @@ join: policy_image {
   sql_on: ${policy_image.policy_id} = ${dt_itd_premiums.policy_id}
   AND ${policy_image.renewal_ver} = ${dt_itd_premiums.renewal_ver};;
 }
+
 join: dt_policyimage_num_unique {
   view_label: "TEST"
   type: inner
   relationship: one_to_many
-  sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
-  AND ${policy_image.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
+  sql_on: ${dt_itd_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
+  AND ${dt_itd_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
 }
 
-join: v_vehicle {
+join: v_vehicle_coverage {
     view_label: "Vehicle"
     type: left_outer
-    fields: []
+    fields: [v_vehicle_coverage.limitdscr]
     relationship: one_to_many
-    sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle.policy_id}
-    AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle.policyimage_num} ;;
-  #  AND ${eop_monthly_premiums.unit_num} = ${v_vehicle.vehicle_num}
+    sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle_coverage.policy_id}
+    AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
+    AND ${dt_itd_premiums.unit_num} = ${v_vehicle_coverage.vehicle_num}  ;;
+
+}
+
+  join: vehicle {
+  view_label: "Vehicle"
+  type: left_outer
+  fields: [vehicle.year, vehicle.class_code]
+  relationship: one_to_many
+  sql_on: ${vehicle.policy_id} = ${v_vehicle_coverage.policy_id}
+    AND  ${vehicle.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
+    AND ${vehicle.vehicle_num} = ${v_vehicle_coverage.vehicle_num}
+    ;;
 }
 
 join: driver {
@@ -51,10 +64,10 @@ join: driver {
   type: left_outer
   fields: []
   relationship: one_to_many
-  sql_on: ${v_vehicle.policy_id} = ${driver.policy_id} AND
-  ${driver.policyimage_num} = ${v_vehicle.policyimage_num} AND
-  CASE WHEN ${v_vehicle.driver_assign_id} = 0 THEN 1
-  ELSE ${v_vehicle.driver_assign_id} END = ${driver.driver_num};;
+  sql_on: ${vehicle.policy_id} = ${driver.policy_id} AND
+  ${driver.policyimage_num} = ${vehicle.policyimage_num} AND
+  CASE WHEN ${vehicle.driver_assign_id} = 0 THEN 1
+  ELSE ${vehicle.driver_assign_id} END = ${driver.driver_num};;
 }
 
   join: driver_name_link {
