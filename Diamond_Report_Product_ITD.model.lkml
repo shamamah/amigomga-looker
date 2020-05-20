@@ -110,6 +110,14 @@ join: driver {
     sql_on: ${dt_itd_premiums.coveragecode_id} = ${coverage_code.coveragecode_id};;
   }
 
+  join: dt_discount_indicator {
+    view_label: "Discount"
+    type: full_outer
+    relationship: one_to_many
+    sql_on: ${dt_discount_indicator.policy_id} = ${dt_policyimage_num_unique.policy_id}
+    AND ${dt_discount_indicator.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+  }
+
   join: dt_itd_claims {
     view_label: "Claims"
     type: left_outer
