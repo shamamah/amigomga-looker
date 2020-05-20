@@ -83,7 +83,6 @@ join: driver {
   join: driver_name {
     view_label: "Driver"
     type: left_outer
-    fields: []
     relationship: one_to_one
     sql_on: ${driver_name.name_id} = ${driver_name_link.name_id} ;;
   }
@@ -91,7 +90,7 @@ join: driver {
   join: marital_status {
     view_label: "Driver"
     type: left_outer
-    fields: []
+    fields: [marital_status.dscr]
     relationship: one_to_many
     sql_on: ${marital_status.maritalstatus_id} = ${driver_name.maritalstatus_id} ;;
   }
@@ -99,7 +98,7 @@ join: driver {
   join: sex {
     view_label: "Driver"
     type: left_outer
-    fields: []
+    fields: [sex.dscr]
     relationship: one_to_many
     sql_on: ${sex.sex_id} = ${driver_name.sex_id} ;;
   }
