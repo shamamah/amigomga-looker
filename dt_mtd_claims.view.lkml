@@ -53,7 +53,7 @@ view: dt_mtd_claims {
           V.state_id,
           V.lob_id,
           CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END,
-          CASE WHEN V.lob_id = 1 AND overageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
+          CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
           PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
           PolicyImage.renewal_ver,
