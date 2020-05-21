@@ -3,8 +3,8 @@ view: dt_itd_claims {
     sql: SELECT V.company_id,
           V.state_id,
           V.lob_id,
-          CASE WHEN ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END as coveragecode_id,
-          CASE WHEN CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END as caption,
+          CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END as coveragecode_id,
+          CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END as caption,
           PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
           PolicyImage.renewal_ver,
@@ -52,12 +52,12 @@ view: dt_itd_claims {
         GROUP BY V.company_id,
           V.state_id,
           V.lob_id,
-          CASE WHEN ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END,
-          CASE WHEN CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
+          CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END,
+          CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
           PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
           PolicyImage.renewal_ver,
-          CCV.Vehicle_num
+          ISNULL(CCV.Vehicle_num, 1)
        ;;
   }
 
@@ -122,6 +122,24 @@ view: dt_itd_claims {
   measure: loss_paid {
     type: sum
     sql: ${TABLE}.LossPaid ;;
+  }
+
+  measure: incurred_with_expense_ss {
+    label: "INC Paid+Expenses+Reserves-SS"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve + ${TABLE}.expense_paid + ${TABLE}.expense_reserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
+  }
+
+  measure: incurred_gross_pd {
+    label: "INC Paid+Reserves"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve;;
+  }
+
+  measure: incurred_net_pd_ss {
+    label: "INC Paid+Reserves-SS"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
   }
 
   measure: salvage {
