@@ -66,6 +66,7 @@ view: dt_itd_claims {
     hidden: yes
     sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num);;
   }
+
   dimension: company_id {
     type: number
     hidden: yes
