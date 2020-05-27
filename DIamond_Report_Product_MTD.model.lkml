@@ -8,7 +8,7 @@ week_start_day: sunday
 
 explore: dt_premiums {
   group_label: "Diamond Analytics (REPORT)"
-  label: "Product MTD"
+  label: "Product"
   view_label: "Premium"
 
   join: company_state_lob {
