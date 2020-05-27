@@ -1,14 +1,19 @@
-view: dt_mtd_claims {
+view: dt_claims {
   filter: year {
-    type:  number
-  hidden: yes
-    }
-    filter: month {
-      type: number
-      hidden: yes
-    }
+    type: number
+    hidden: yes
+  }
+  filter: month {
+    type: number
+    hidden: yes
+  }
+  filter: eoplevel {
+    type: number
+    hidden:  yes
+    default_value: "3"
+  }
   derived_table: {
-      sql: SELECT
+    sql: SELECT
           CFE.Year,
           CFE.Month,
           V.company_id,
@@ -57,7 +62,7 @@ view: dt_mtd_claims {
         INNER JOIN [Version] V WITH(NOLOCK)
           ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
         WHERE
-          CFE.claimeoplevel_id = 3 AND
+          {% condition eoplevel %} CFE.claimeoplevel_id {% endcondition %} AND
           {% condition year %} cfe.year {% endcondition %} AND
           {% condition month %} cfe.month {% endcondition %}
         GROUP BY
@@ -73,111 +78,111 @@ view: dt_mtd_claims {
           PolicyImage.renewal_ver,
           ISNULL(CCV.Vehicle_num, 1)
        ;;
-    }
-
-
-    dimension: itd_claims_primarykey {
-      primary_key: yes
-      hidden: yes
-      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month);;
-    }
-
-
-
-    dimension: company_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.company_id ;;
-    }
-
-    dimension: state_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.state_id ;;
-    }
-
-    dimension: lob_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.lob_id ;;
-    }
-
-    dimension: vehicle_num {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.vehicle_num ;;
-    }
-
-    dimension: coveragecode_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.coveragecode_id ;;
-    }
-
-    dimension: caption {
-      type: string
-      hidden: yes
-      sql: ${TABLE}.caption ;;
-    }
-
-    dimension: policy_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.policy_id ;;
-    }
-
-    dimension: renewal_ver {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.renewal_ver ;;
-    }
-
-    measure: loss_reserve {
-      type: sum
-      sql: ${TABLE}.LossReserve ;;
-    }
-
-    measure: loss_paid {
-      type: sum
-      sql: ${TABLE}.LossPaid ;;
-    }
-
-    measure: salvage {
-      type: sum
-      sql: ${TABLE}.Salvage ;;
-    }
-
-    measure: subro {
-      type: sum
-      sql: ${TABLE}.Subro ;;
-    }
-
-    measure: expense_reserve {
-      type: sum
-      sql: ${TABLE}.expense_reserve ;;
-    }
-
-    measure: expense_paid {
-      type: sum
-      sql: ${TABLE}.expense_paid ;;
-    }
-
-    measure: incurred_with_expense_ss {
-      label: "INC Paid+Expenses+Reserves-SS"
-      type: sum
-      sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve + ${TABLE}.expense_paid + ${TABLE}.expense_reserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
-    }
-
-    measure: incurred_gross_pd {
-      label: "INC Paid+Reserves"
-      type: sum
-      sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve;;
-    }
-
-    measure: incurred_net_pd_ss {
-      label: "INC Paid+Reserves-SS"
-      type: sum
-      sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
-    }
-
   }
+
+
+  dimension: itd_claims_primarykey {
+    primary_key: yes
+    hidden: yes
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month);;
+  }
+
+
+
+  dimension: company_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.company_id ;;
+  }
+
+  dimension: state_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.state_id ;;
+  }
+
+  dimension: lob_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.lob_id ;;
+  }
+
+  dimension: vehicle_num {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.vehicle_num ;;
+  }
+
+  dimension: coveragecode_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.coveragecode_id ;;
+  }
+
+  dimension: caption {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.caption ;;
+  }
+
+  dimension: policy_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.policy_id ;;
+  }
+
+  dimension: renewal_ver {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.renewal_ver ;;
+  }
+
+  measure: loss_reserve {
+    type: sum
+    sql: ${TABLE}.LossReserve ;;
+  }
+
+  measure: loss_paid {
+    type: sum
+    sql: ${TABLE}.LossPaid ;;
+  }
+
+  measure: salvage {
+    type: sum
+    sql: ${TABLE}.Salvage ;;
+  }
+
+  measure: subro {
+    type: sum
+    sql: ${TABLE}.Subro ;;
+  }
+
+  measure: expense_reserve {
+    type: sum
+    sql: ${TABLE}.expense_reserve ;;
+  }
+
+  measure: expense_paid {
+    type: sum
+    sql: ${TABLE}.expense_paid ;;
+  }
+
+  measure: incurred_with_expense_ss {
+    label: "INC Paid+Expenses+Reserves-SS"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve + ${TABLE}.expense_paid + ${TABLE}.expense_reserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
+  }
+
+  measure: incurred_gross_pd {
+    label: "INC Paid+Reserves"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve;;
+  }
+
+  measure: incurred_net_pd_ss {
+    label: "INC Paid+Reserves-SS"
+    type: sum
+    sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
+  }
+
+}

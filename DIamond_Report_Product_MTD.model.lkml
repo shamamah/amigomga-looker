@@ -6,7 +6,7 @@ include: "*.view"
 fiscal_month_offset: 0
 week_start_day: sunday
 
-explore: dt_mtd_premiums {
+explore: dt_premiums {
   group_label: "Diamond Analytics (REPORT)"
   label: "Product MTD"
   view_label: "Premium"
@@ -15,9 +15,9 @@ explore: dt_mtd_premiums {
     view_label: "Company"
     type: inner
     relationship: one_to_many
-    sql_on: ${company_state_lob.company_id} = ${dt_mtd_premiums.company_id}
-        AND ${company_state_lob.lob_id} = ${dt_mtd_premiums.lob_id}
-        AND ${company_state_lob.state_id} = ${dt_mtd_premiums.state_id};;
+    sql_on: ${company_state_lob.company_id} = ${dt_premiums.company_id}
+        AND ${company_state_lob.lob_id} = ${dt_premiums.lob_id}
+        AND ${company_state_lob.state_id} = ${dt_premiums.state_id};;
   }
 
   join: policy_image {
@@ -25,16 +25,16 @@ explore: dt_mtd_premiums {
     type: inner
     fields: []
     relationship: one_to_one
-    sql_on: ${policy_image.policy_id} = ${dt_mtd_premiums.policy_id}
-      AND ${policy_image.renewal_ver} = ${dt_mtd_premiums.renewal_ver};;
+    sql_on: ${policy_image.policy_id} = ${dt_premiums.policy_id}
+      AND ${policy_image.renewal_ver} = ${dt_premiums.renewal_ver};;
   }
 
   join: dt_policyimage_num_unique {
     view_label: "TEST"
     type: inner
     relationship: one_to_many
-    sql_on: ${dt_mtd_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
-      AND ${dt_mtd_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
+    sql_on: ${dt_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
 
   join: v_vehicle_coverage {
@@ -44,7 +44,7 @@ explore: dt_mtd_premiums {
     relationship: one_to_many
     sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle_coverage.policy_id}
           AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
-          AND ${dt_mtd_premiums.unit_num} = ${v_vehicle_coverage.vehicle_num}  ;;
+          AND ${dt_premiums.unit_num} = ${v_vehicle_coverage.vehicle_num}  ;;
 
     }
 
@@ -107,7 +107,7 @@ explore: dt_mtd_premiums {
       view_label: "Coverage"
       type: left_outer
       relationship: one_to_many
-      sql_on: ${dt_mtd_premiums.coveragecode_id} = ${coverage_code.coveragecode_id};;
+      sql_on: ${dt_premiums.coveragecode_id} = ${coverage_code.coveragecode_id};;
     }
 
     join: dt_discount_indicator {
@@ -122,7 +122,7 @@ explore: dt_mtd_premiums {
       view_label: "Claims"
       type: left_outer
       relationship: many_to_one
-      sql_on: ${dt_mtd_premiums.itd_premiums_primarykey} = ${dt_mtd_claims.itd_claims_primarykey};;
+      sql_on: ${dt_premiums.itd_premiums_primarykey} = ${dt_mtd_claims.itd_claims_primarykey};;
     }
 
     join: reinsurance_treaty {
