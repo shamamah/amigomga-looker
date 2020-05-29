@@ -1,7 +1,7 @@
 view: dt_cash_and_fees {
     derived_table: {
       sql: SELECT
-          CAST(COALESCE(BCD.added_date, BC.added_date) as Datetime)
+          CAST(BC.added_date as date)
           AS trans_date,
           V.company_id,
           V.State_id,
@@ -12,6 +12,7 @@ view: dt_cash_and_fees {
           pim.policyimage_num,
           pim.eff_date,
           ISNULL(billingchargetypecategory_id,5) as FeeInd,
+          ISNULL(BCIC.dscr, 'Other') as PaymentType,
           COALESCE(BCCT.dscr, BCDT.dscr) AS CashDetailDscr,
           -SUM(COALESCE(BCMD.amount, BCD.amount)) AS amount,
           -SUM(CASE WHEN COALESCE(BCCT.dscr, BCDT.dscr) = 'Premium'
@@ -42,27 +43,30 @@ view: dt_cash_and_fees {
             ON PIM.policy_id = PIM2.policy_id
               AND PIM.policyimage_num = PIM2.policyimage_num
               AND PIM.policy_id >=-1
+          INNER JOIN Version V WITH (NOLOCK)
+            ON V.version_id = PIM.version_id
           INNER JOIN Agency A
             ON A.Agency_id = PIM.Agency_id
-          INNER JOIN AgencyCommission AC
-            ON ac.agency_id = a.agency_id
-            AND PIM.eff_date between ac.start_date and ac.end_date
-          INNER JOIN AgencyCommissionDetail ACD
+          LEFT OUTER JOIN AgencyCommission AC
+              ON ac.agency_id = pim.agency_id
+              AND ac.companystatelob_id = v.lob_id
+              AND pim.eff_date between ac.start_date and ac.end_date
+          LEFT OUTER JOIN AgencyCommissionDetail ACD
             ON acd.AgencyCommission_id = ac.agencycommission_id
             AND acd.AgencyCommissionDetailType_id = CASE WHEN PIM.Renewal_ver = 1 THEN 1 ELSE 2 END
           LEFT OUTER JOIN BillingCashInSource BCIS WITH (NOLOCK)
             ON BCIS.billingcashinsource_id = BC.billingcashinsource_id
+          LEFT OUTER JOIN BillingCashInSourceCategory BCIC WITH (NOLOCK)
+            ON BCIC.billingcashinsourcecategory_id = BCIS.billingcashinsourcecategory_id
           INNER JOIN PolicyImageNameLink PNL WITH (NOLOCK)
             ON PNL.policy_id = PIM.policy_id
               AND PNL.policyimage_num = PIM.policyimage_num
               AND PNL.nameaddresssource_id = 5
           INNER JOIN [Name] N WITH (NOLOCK)
             ON N.name_id = PNL.name_id
-          INNER JOIN Version V WITH (NOLOCK)
-            ON V.version_id = PIM.version_id
           WHERE PIM.Policy_id <> 286372
           group by
-          CAST(COALESCE(BCD.added_date, BC.added_date) as Datetime),
+          CAST(BC.added_date as date),
           --CAST(LEFT(DATENAME(month, COALESCE(BCD.added_date, BC.added_date)), 3) as varchar(3)) + ' ' +
           --CAST(YEAR(COALESCE(BCD.added_date, BC.added_date)) as varchar(4)),
           V.company_id,
@@ -74,14 +78,15 @@ view: dt_cash_and_fees {
           pim.policy_id,
           pim.policyimage_num,
           pim.eff_date,
-          ISNULL(billingchargetypecategory_id,5)
+          ISNULL(billingchargetypecategory_id,5),
+          ISNULL(BCIC.dscr, 'Other')
  ;;
     }
 
   dimension: cash_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num, ' ', ${TABLE}.CashDetailDscr);;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num, ' ', ${TABLE}.CashDetailDscr, ' ', ${TABLE}.PaymentType);;
   }
 
     measure: count {
@@ -140,6 +145,13 @@ view: dt_cash_and_fees {
       type: date
       hidden: yes
       sql: ${TABLE}.eff_date ;;
+    }
+
+    dimension: payment_type {
+      label: "Payment Type"
+      type: string
+      sql: ${TABLE}.Paymenttype ;;
+
     }
 
     dimension: cash_detail_dscr {
