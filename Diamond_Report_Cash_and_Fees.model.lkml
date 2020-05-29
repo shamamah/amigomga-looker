@@ -28,6 +28,11 @@ explore: dt_cash_and_fees {
       AND ${policy_image.policyimage_num} = ${dt_cash_and_fees.policyimage_num};;
   }
 
-
+join: reinsurance_treaty {
+  view_label: "Treaty"
+  type: inner
+  relationship: one_to_many
+  sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} and ${reinsurance_treaty.expiration_date} ;;
+}
 
 }

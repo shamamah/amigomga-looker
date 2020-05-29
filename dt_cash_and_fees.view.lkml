@@ -81,7 +81,7 @@ view: dt_cash_and_fees {
   dimension: cash_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num);;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num, ' ', ${TABLE}.CashDetailDscr);;
   }
 
     measure: count {
