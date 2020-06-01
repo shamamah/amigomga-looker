@@ -50,10 +50,13 @@ view: dt_cash_and_fees {
           LEFT OUTER JOIN AgencyCommission AC
               ON ac.agency_id = pim.agency_id
               AND ac.companystatelob_id = v.lob_id
-              AND pim.eff_date between ac.start_date and ac.end_date
+              AND pim.eff_date between ac.start_date and CASE WHEN ac.end_date = '1800-01-01' THEN '2199-12-31' ELSE ac.end_date END
+          LEFT OUTER JOIN [AgencyCommissionDetailType] acdt
+              ON acdt.companystatelob_id = v.lob_id
+              AND acdt.description = CASE WHEN PIM.renewal_ver = 1 THEN 'New Business' ELSE 'Renewal' END
           LEFT OUTER JOIN AgencyCommissionDetail ACD
             ON acd.AgencyCommission_id = ac.agencycommission_id
-            AND acd.AgencyCommissionDetailType_id = CASE WHEN PIM.Renewal_ver = 1 THEN 1 ELSE 2 END
+            AND acd.AgencyCommissionDetailType_id = acdt.agencycommissiondetailtype_id
           LEFT OUTER JOIN BillingCashInSource BCIS WITH (NOLOCK)
             ON BCIS.billingcashinsource_id = BC.billingcashinsource_id
           LEFT OUTER JOIN BillingCashInSourceCategory BCIC WITH (NOLOCK)
@@ -177,24 +180,28 @@ view: dt_cash_and_fees {
     measure: mga_commission {
       label: "MGA Commission"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.17 ELSE 0 END ;;
     }
 
     measure: ulae_fee {
       label: "ULAE"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.07 ELSE 0 END ;;
     }
 
     measure: claims_admin {
       label: "Claims Administration"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.07 ELSE 0 END ;;
     }
 
     measure: fee_total {
       label: "Fee Income"
          type: sum
+
         sql: CASE WHEN ${TABLE}.CashDetailDscr like '%fee' or
           ${TABLE}.CashDetailDscr = 'Service Charge' Then ${TABLE}.amount ELSE 0 END ;;
     }
@@ -208,24 +215,28 @@ view: dt_cash_and_fees {
     measure: outside_services {
       label: "Outside Services"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.015 ELSE 0 END ;;
     }
 
     measure: mvr_postage {
       label: "MVR, Postage"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.02 ELSE 0 END ;;
     }
 
     measure: epo {
-      label: "EPO"
+      label: "BPO"
       type: sum
+      value_format: "#,##0.00"
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN ${TABLE}.amount * 0.038 ELSE 0 END ;;
     }
 
     measure: agency_commission {
       label: "Producer Commission"
       type: sum
+      value_format: "#,##0.00"
       sql: ${TABLE}.AgencyCommission;;
     }
      measure: amount {
