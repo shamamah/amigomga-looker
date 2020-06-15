@@ -9,7 +9,7 @@ view: claim_catastrophe {
 
   dimension: dscr {
     type: string
-    label: "Description"
+    label: "CAT Description"
     sql: ${TABLE}.dscr ;;
   }
 

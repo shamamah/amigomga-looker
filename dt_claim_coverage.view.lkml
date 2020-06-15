@@ -4,6 +4,9 @@ view: dt_claim_coverage {
 
     select cc.claimcontrol_id as 'claimcontrol_id'
         ,cc.claimcoverage_num as 'claimcoverage_num'
+        ,cc.claimexposure_id
+        ,cc.claimsubexposure_num
+        ,cc.coveragecode_id
         ,ce.dscr as 'Exposure'
         ,cd.dscr as 'Coverage'
         ,cc.limit_dscr as 'Limit'
@@ -27,6 +30,24 @@ view: dt_claim_coverage {
     hidden: yes
     type: number
     sql: ${TABLE}.claimcontrol_id ;;
+  }
+
+  dimension: coveragecode_id {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.coveragecode_id ;;
+  }
+
+  dimension: claimexposure_id {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.claimexposure_id ;;
+  }
+
+  dimension: claimsubexposure_num {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.claimsubexposure_num ;;
   }
 
   dimension: claimcoverage_num {
