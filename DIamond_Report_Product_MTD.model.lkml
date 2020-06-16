@@ -14,7 +14,7 @@ explore: dt_premiums {
   join: company_state_lob {
     view_label: "Company"
     type: inner
-    relationship: one_to_many
+    relationship: many_to_one
     sql_on: ${company_state_lob.company_id} = ${dt_premiums.company_id}
         AND ${company_state_lob.lob_id} = ${dt_premiums.lob_id}
         AND ${company_state_lob.state_id} = ${dt_premiums.state_id};;
@@ -24,7 +24,7 @@ explore: dt_premiums {
     view_label: "Policy"
     type: inner
     fields: []
-    relationship: one_to_one
+    relationship: many_to_one
     sql_on: ${policy_image.policy_id} = ${dt_premiums.policy_id}
       AND ${policy_image.renewal_ver} = ${dt_premiums.renewal_ver};;
   }
@@ -32,7 +32,7 @@ explore: dt_premiums {
   join: dt_policyimage_num_unique {
     view_label: "TEST"
     type: inner
-    relationship: one_to_many
+    relationship: one_to_one
     sql_on: ${dt_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
@@ -41,7 +41,7 @@ explore: dt_premiums {
     view_label: "Vehicle"
     type: left_outer
     fields: [v_vehicle_coverage.limitdscr]
-    relationship: one_to_many
+    relationship: one_to_one
     sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle_coverage.policy_id}
           AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
           AND ${dt_premiums.unit_num} = ${v_vehicle_coverage.vehicle_num}  ;;
@@ -52,7 +52,7 @@ explore: dt_premiums {
       view_label: "Vehicle"
       type: left_outer
       fields: [vehicle.year, vehicle.class_code]
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${vehicle.policy_id} = ${v_vehicle_coverage.policy_id}
             AND  ${vehicle.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
             AND ${vehicle.vehicle_num} = ${v_vehicle_coverage.vehicle_num}
@@ -63,7 +63,7 @@ explore: dt_premiums {
       view_label: "Driver"
       type: left_outer
       fields: []
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${vehicle.policy_id} = ${driver.policy_id} AND
           ${driver.policyimage_num} = ${vehicle.policyimage_num} AND
           CASE WHEN ${vehicle.driver_assign_id} = 0 THEN 1
@@ -74,7 +74,7 @@ explore: dt_premiums {
       view_label: "Driver"
       type: left_outer
       fields: []
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${driver_name_link.policy_id} = ${driver.policy_id}
           AND ${driver_name_link.policyimage_num} = ${driver.policyimage_num}
           AND ${driver_name_link.driver_num} = ${driver.driver_num} ;;
@@ -91,7 +91,7 @@ explore: dt_premiums {
       view_label: "Driver"
       type: left_outer
       fields: [marital_status.dscr]
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${marital_status.maritalstatus_id} = ${driver_name.maritalstatus_id} ;;
     }
 
@@ -99,21 +99,21 @@ explore: dt_premiums {
       view_label: "Driver"
       type: left_outer
       fields: [sex.dscr]
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${sex.sex_id} = ${driver_name.sex_id} ;;
     }
 
     join: coverage_code {
       view_label: "Coverage"
       type: left_outer
-      relationship: one_to_many
+      relationship: one_to_one
       sql_on: ${dt_premiums.coveragecode_id} = ${coverage_code.coveragecode_id};;
     }
 
     join: dt_discount_indicator {
       view_label: "Discount"
       type: full_outer
-      relationship: one_to_many
+      relationship: many_to_one
       sql_on: ${dt_discount_indicator.policy_id} = ${dt_policyimage_num_unique.policy_id}
         AND ${dt_discount_indicator.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
     }
