@@ -37,31 +37,30 @@ explore: dt_premiums {
       AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
 
+  join: vehicle {
+    view_label: "Vehicle"
+    type: inner
+    fields: [vehicle.year, vehicle.class_code]
+    relationship: one_to_many
+    sql_on: ${vehicle.policy_id} = ${dt_policyimage_num_unique.policy_id}
+          AND  ${vehicle.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num}
+          AND ${vehicle.vehicle_num} = ${dt_premiums.unit_num};;
+  }
+
   join: v_vehicle_coverage {
     view_label: "Vehicle"
-    type: left_outer
+    type: inner
     fields: [v_vehicle_coverage.limitdscr]
     relationship: one_to_one
-    sql_on: ${dt_policyimage_num_unique.policy_id} = ${v_vehicle_coverage.policy_id}
-          AND  ${dt_policyimage_num_unique.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
-          AND ${dt_premiums.unit_num} = ${v_vehicle_coverage.vehicle_num}  ;;
-
-    }
-
-    join: vehicle {
-      view_label: "Vehicle"
-      type: left_outer
-      fields: [vehicle.year, vehicle.class_code]
-      relationship: one_to_one
-      sql_on: ${vehicle.policy_id} = ${v_vehicle_coverage.policy_id}
-            AND  ${vehicle.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
-            AND ${vehicle.vehicle_num} = ${v_vehicle_coverage.vehicle_num}
-            ;;
+    sql_on: ${vehicle.policy_id} = ${v_vehicle_coverage.policy_id}
+          AND  ${vehicle.policyimage_num} = ${v_vehicle_coverage.policyimage_num}
+          AND ${vehicle.vehicle_num} = ${v_vehicle_coverage.vehicle_num}
+          AND ${dt_premiums.coveragecode_id}=${v_vehicle_coverage.coveragecode_id};;
     }
 
     join: driver {
       view_label: "Driver"
-      type: left_outer
+      type: inner
       fields: []
       relationship: one_to_one
       sql_on: ${vehicle.policy_id} = ${driver.policy_id} AND
@@ -72,7 +71,7 @@ explore: dt_premiums {
 
     join: driver_name_link {
       view_label: "Driver"
-      type: left_outer
+      type: inner
       fields: []
       relationship: one_to_one
       sql_on: ${driver_name_link.policy_id} = ${driver.policy_id}
@@ -82,14 +81,14 @@ explore: dt_premiums {
 
     join: driver_name {
       view_label: "Driver"
-      type: left_outer
+      type: inner
       relationship: one_to_one
       sql_on: ${driver_name.name_id} = ${driver_name_link.name_id} ;;
     }
 
     join: marital_status {
       view_label: "Driver"
-      type: left_outer
+      type: inner
       fields: [marital_status.dscr]
       relationship: one_to_one
       sql_on: ${marital_status.maritalstatus_id} = ${driver_name.maritalstatus_id} ;;
@@ -97,7 +96,7 @@ explore: dt_premiums {
 
     join: sex {
       view_label: "Driver"
-      type: left_outer
+      type: inner
       fields: [sex.dscr]
       relationship: one_to_one
       sql_on: ${sex.sex_id} = ${driver_name.sex_id} ;;

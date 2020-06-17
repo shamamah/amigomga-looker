@@ -169,7 +169,7 @@ view: dt_claimcount {
     dimension: action_type {
       label: "Claim Status"
       type: string
-      sql: CASE WHEN ${TABLE}.ActionType <> 'Open' THEN ${TABLE}.ActionType END;;
+      sql: ${TABLE}.ActionType;;
     }
 
     dimension: outstanding {
