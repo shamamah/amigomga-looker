@@ -1,9 +1,11 @@
-view: dt_premiums {
-
+view: dt_premiums_jp {
   derived_table: {
     sql: SELECT
-        year,
-        month,
+    CASE WHEN ISDATE(eff_date) = 0 THEN
+        CASE WHEN eff_date like '%-02-%' THEN CAST(left(eff_date, 8) + '28' as datetime) ELSE CAST(left(eff_date, 8) + '30' as datetime) END
+          ELSE CAST(eff_date as datetime) END as eff_date,
+        Year,
+        Month,
         company_id,
         state_id,
         lob_id,
@@ -16,8 +18,9 @@ view: dt_premiums {
         SUM(TotalEarnedPremium) as TotalEarnedPremium,
         SUM(TotalWrittenPremium) as TotalWrittenPremium
         FROM (SELECT
-                EMP.YEAR,
-                EMP.Month,
+                CAST(YEAR as varchar(4)) + '-' + RIGHT('00' + CAST(MONTH as Varchar(2)), 2) + '-' + RIGHT('00' + CAST(DAY(accounting_date) as varchar(2)), 2) as Eff_date,
+                year,
+                month,
                 V.company_id,
                 V.state_id,
                 V.lob_id,
@@ -36,8 +39,9 @@ view: dt_premiums {
             ON EMP.coveragecode_id = CCV.coveragecode_id
               AND V.version_id = CCV.version_id
           GROUP BY
-            EMP.year,
-            EMP.month,
+            CAST(YEAR as varchar(4)) + '-' + RIGHT('00' + CAST(MONTH as Varchar(2)), 2) + '-' + RIGHT('00' + CAST(DAY(accounting_date) as varchar(2)), 2),
+            YEAR,
+            MONTH,
             V.company_id,
             V.state_id,
             V.lob_id,
@@ -52,8 +56,9 @@ view: dt_premiums {
           UNION ALL
 
           SELECT
-            YEAR(GETDATE()-1) as year,
-            MONTH(GETDATE()-1) as month,
+            CAST(YEAR(GETDATE()-1) as varchar(4)) + '-' + RIGHT('00' + CAST(MONTH(GETDATE()-1) as Varchar(2)), 2) + '-' + RIGHT('00' + CAST(DAY(accounting_date) as varchar(2)), 2) as Eff_date,
+            YEAR(GETDATE()-1) as YEAR,
+            MONTH(GETDATE()-1) as MONTH,
             V.company_id,
             V.state_id,
             V.lob_id,
@@ -72,6 +77,7 @@ view: dt_premiums {
             ON EMP.coveragecode_id = CCV.coveragecode_id
               AND V.version_id = CCV.version_id
           GROUP BY
+            CAST(YEAR(GETDATE()-1) as varchar(4)) + '-' + RIGHT('00' + CAST(MONTH(GETDATE()-1) as Varchar(2)), 2) + '-' + RIGHT('00' + CAST(DAY(accounting_date) as varchar(2)), 2),
             V.company_id,
             V.state_id,
             V.lob_id,
@@ -82,17 +88,20 @@ view: dt_premiums {
             renewal_ver,
             unit_num) xx
       Group by
-            Year,
-            Month,
-            company_id,
-            state_id,
-            lob_id,
-            coveragecode_id,
-            caption,
-            policy_id,
-  --          Policyimage_num,
-            renewal_ver,
-            unit_num
+        CASE WHEN ISDATE(eff_date) = 0 THEN
+          CASE WHEN eff_date like '%-02-%' THEN CAST(left(eff_date, 8) + '28' as datetime) ELSE CAST(left(eff_date, 8) + '30' as datetime) END
+          ELSE CAST(eff_date as datetime) END,
+        YEAR,
+        MONTH,
+        company_id,
+        state_id,
+        lob_id,
+        coveragecode_id,
+        caption,
+        policy_id,
+--          Policyimage_num,
+        renewal_ver,
+        unit_num
  ;;
   }
 
@@ -100,7 +109,7 @@ view: dt_premiums {
   dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num, ' ', ${TABLE}.year, ' ', ${TABLE}.month) ;;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num, ' ', ${TABLE}.year, ' ', ${TABLE}.month, ' ', CAST(${TABLE}.eff_date as DATE));;
   }
 
   measure: total_earned_premium {
@@ -129,32 +138,14 @@ view: dt_premiums {
     sql: ${TABLE}.totalearnedpremium ;;
   }
 
-  dimension: measures_list {
-    case: {
-      when: {
-        label: "Incurred Loss"
-        sql: 1=1 ;;
-      }
-      when: {
-        label: "Earned Premium"
-        sql: 1=1 ;;
-      }
-      when: {
-        label: "Loss Ratio"
-        sql: 1=1 ;;
-      }
-    }
+
+  dimension_group: eff_date {
+    type: time
+    timeframes: [date, week, month, quarter, year]
+    sql: ${TABLE}.eff_date;;
+
   }
 
-  dimension: year {
-    type: number
-    sql: ${TABLE}.year ;;
-  }
-
-  dimension: month {
-    type: number
-    sql: ${TABLE}.month ;;
-  }
 
   dimension: new_renewal {
     label: "New vs. Renewal"

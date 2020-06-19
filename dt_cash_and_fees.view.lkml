@@ -14,6 +14,7 @@ view: dt_cash_and_fees {
           ISNULL(billingchargetypecategory_id,5) as FeeInd,
           ISNULL(BCIC.dscr, 'Other') as PaymentType,
           COALESCE(BCCT.dscr, BCDT.dscr) AS CashDetailDscr,
+          ISNULL(BCIS.dscr, 'UnKnown') AS CashSource,
           -SUM(COALESCE(BCMD.amount, BCD.amount)) AS amount,
           -SUM(CASE WHEN COALESCE(BCCT.dscr, BCDT.dscr) = 'Premium'
               THEN COALESCE(BCMD.amount, BCD.amount)*(ACD.amount/100) ELSE 0 END) as AgencyCommission
@@ -82,14 +83,15 @@ view: dt_cash_and_fees {
           pim.policyimage_num,
           pim.eff_date,
           ISNULL(billingchargetypecategory_id,5),
-          ISNULL(BCIC.dscr, 'Other')
+          ISNULL(BCIC.dscr, 'Other'),
+          ISNULL(BCIS.dscr, 'UnKnown')
  ;;
     }
 
   dimension: cash_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num, ' ', ${TABLE}.CashDetailDscr, ' ', ${TABLE}.PaymentType);;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.trans_date, ' ', ${TABLE}.policyimage_num, ' ', ${TABLE}.CashDetailDscr, ' ', ${TABLE}.PaymentType, ' ', ${TABLE}.CashSource);;
   }
 
     measure: count {
@@ -157,6 +159,12 @@ view: dt_cash_and_fees {
 
     }
 
+    dimension: cash_source {
+      label: "Cash Source"
+      type: string
+      sql: ${TABLE}.CashSource ;;
+
+    }
     dimension: cash_detail_dscr {
       type: string
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN 'Collected Premium'
