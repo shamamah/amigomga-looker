@@ -165,6 +165,7 @@ view: dt_cash_and_fees {
       sql: ${TABLE}.CashSource ;;
 
     }
+
     dimension: cash_detail_dscr {
       type: string
       sql: CASE WHEN ${TABLE}.CashDetailDscr = 'Premium' THEN 'Collected Premium'
