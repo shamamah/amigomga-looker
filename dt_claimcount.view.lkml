@@ -29,7 +29,7 @@ view: dt_claimcount {
                 CASE WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is not NULL THEN 'Closed Pay'
                   WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is NULL THEN 'Closed w/o Pay'
                    ELSE 'Open' END as ActionType,
-                CASE WHEN CFA.claimactivitycode_id = 2 THEN -1 ELSE 1 END as Outstanding
+                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE 0 END as Outstanding
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -172,9 +172,8 @@ view: dt_claimcount {
       sql: ${TABLE}.ActionType;;
     }
 
-    dimension: outstanding {
-      type: number
-      hidden: yes
+    measure: outstanding {
+      type: sum
       sql: ${TABLE}.Outstanding ;;
     }
 

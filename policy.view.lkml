@@ -73,10 +73,10 @@ view: policy {
     sql: ${TABLE}.first_eff_date ;;
   }
 
-  measure: count {
-    label: "Count"
-    type: count
-    drill_fields: [policy_drill*]
+  measure: count_distinct_policy {
+    type: count_distinct
+    sql:  ${TABLE}.policy_id ;;
+#    drill_fields: [policy_drill*]
 #     link: {
 #       label: "Sort by Policy"
 #       url: "{{ link }}&sorts=policy.current_policy"

@@ -71,7 +71,7 @@ view: dt_claims_jp {
     dimension: itd_claims_primarykey {
       primary_key: yes
       hidden: yes
-      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month,  ' ', CAST(${TABLE}.eff_date as DATE));;
+      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month);;
     }
 
 

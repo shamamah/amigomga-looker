@@ -109,7 +109,7 @@ view: dt_premiums_jp {
   dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num, ' ', ${TABLE}.year, ' ', ${TABLE}.month, ' ', CAST(${TABLE}.eff_date as DATE));;
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num, ' ', ${TABLE}.year, ' ', ${TABLE}.month);;
   }
 
   measure: total_earned_premium {
@@ -123,13 +123,6 @@ view: dt_premiums_jp {
     type: sum
     sql: ${TABLE}.totalwrittenpremium ;;
   }
-
-  measure: count {
-    label: "Policy Count"
-    type: count_distinct
-    sql: ${TABLE}.policy_id ;;
-  }
-
 
   measure: avgEarned {
     label: "Avg Earned"

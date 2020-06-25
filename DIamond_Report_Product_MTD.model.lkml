@@ -23,11 +23,12 @@ explore: dt_premiums {
   join: policy_image {
     view_label: "Policy"
     type: inner
-    fields: []
+    fields: [count]
     relationship: many_to_one
     sql_on: ${policy_image.policy_id} = ${dt_premiums.policy_id}
       AND ${policy_image.renewal_ver} = ${dt_premiums.renewal_ver};;
   }
+
 
   join: dt_policyimage_num_unique {
     view_label: "TEST"

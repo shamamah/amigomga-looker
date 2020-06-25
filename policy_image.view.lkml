@@ -193,9 +193,7 @@ view: policy_image {
   }
 
   measure: count {
-    label: "Count"
-    type: count
-    drill_fields: [policyimage_drill*]
+    type:  count
   }
 
   measure: sum_premium_chg_written {
