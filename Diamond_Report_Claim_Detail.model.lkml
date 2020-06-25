@@ -23,8 +23,7 @@ explore: claim_transaction {
     view_label: "Claim Detail"
     sql_on: ${claim_transaction.claimcontrol_id} = ${claim_control.claimcontrol_id};;
     relationship: one_to_many
-    fields: [claim_control.reported_date_month, claim_control.count, claim_control.loss_date_date, claim_control.loss_date_month, claim_control.loss_date_quarter,
-              claim_control.loss_date_week, claim_control.loss_date_year]
+
   }
 
   join: policy_image {
