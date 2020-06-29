@@ -32,11 +32,7 @@ view: billing_cash_detail {
   measure: amount {
     type: sum
     sql: -${TABLE}.amount ;;
-    drill_fields: [view.field_1]
-    link: {
-    url: "{{https://amigomga.looker.com/looks/45?}}&pivots=view.field_1&fill_fields=view.field_1"
     }
-  }
 
   dimension: billingcash_num {
     type: number
