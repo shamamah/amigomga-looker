@@ -50,6 +50,7 @@ view: policy_pif_trans_lkup {
 
       dimension: transtype_sht {
         type: string
+        hidden: yes
         sql: ${TABLE}.transtypesht ;;
       }
 

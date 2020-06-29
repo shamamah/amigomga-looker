@@ -126,11 +126,13 @@ view: dt_policy_pif {
 
     dimension: policy_id {
       type: number
+      hidden: yes
       sql: ${TABLE}.Policy_id ;;
     }
 
     dimension: policyimage_num {
       type: number
+      hidden: yes
       sql: ${TABLE}.policyimage_num ;;
     }
 
@@ -157,12 +159,15 @@ view: dt_policy_pif {
     }
 
     dimension_group: trans_date {
+      label: "Transaction Time Increment"
       type: time
+      timeframes: [date, week, month, year]
       sql: ${TABLE}.TransDate ;;
     }
 
     dimension: trans_type {
       type: string
+      hidden: yes
       sql: ${TABLE}.TransType ;;
     }
 
@@ -185,6 +190,7 @@ view: dt_policy_pif {
     }
 
     dimension: tran_eff_date {
+      label: "Effective Date of Transaction"
       type: date
       sql: ${TABLE}.TransEffDate ;;
     }
@@ -194,8 +200,8 @@ view: dt_policy_pif {
       sql: ${TABLE}.TransExpDate ;;
     }
 
-    dimension: written_premium {
-      type: string
+    measure: written_premium {
+      type: sum
       sql: ${TABLE}.premium_chg_written ;;
     }
 
