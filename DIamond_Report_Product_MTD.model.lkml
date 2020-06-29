@@ -20,16 +20,6 @@ explore: dt_premiums {
         AND ${company_state_lob.state_id} = ${dt_premiums.state_id};;
   }
 
-  join: policy_image {
-    view_label: "Policy"
-    type: inner
-    fields: [count]
-    relationship: many_to_one
-    sql_on: ${policy_image.policy_id} = ${dt_premiums.policy_id}
-      AND ${policy_image.renewal_ver} = ${dt_premiums.renewal_ver};;
-  }
-
-
   join: dt_policyimage_num_unique {
     view_label: "TEST"
     type: inner
@@ -37,6 +27,16 @@ explore: dt_premiums {
     sql_on: ${dt_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
+
+  join: policy_image {
+    view_label: "Policy"
+    type: inner
+    fields: [count, policy_number, renewal_ver, eff_date]
+    relationship: many_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+  }
+
 
   join: vehicle {
     view_label: "Vehicle"

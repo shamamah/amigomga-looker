@@ -203,6 +203,11 @@ view: policy_image {
     sql: ${TABLE}.premium_chg_written ;;
   }
 
+  dimension: policy_number {
+    type: string
+    sql:  ${TABLE}.policy ;;
+  }
+
   set: policyimage_drill {
     fields: [
       policy,

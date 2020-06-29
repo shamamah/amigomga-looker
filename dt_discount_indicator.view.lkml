@@ -1,6 +1,7 @@
 view: dt_discount_indicator {
     derived_table: {
-      sql: select pim.policy_id, pim.policyimage_num, DiscountType, CASE WHEN ca.DiscountInd is NULL THEN pim.Discountind ELSE ca.discountind end as discountind
+      sql: select pim.policy_id, pim.policyimage_num, DiscountType, CASE WHEN ca.DiscountInd is NULL THEN pim.Discountind
+                                                                          ELSE ca.discountind end as discountind
                 FROM
                 (select pim.policy_id, pim.policyimage_num, DiscountType, dscr, discountind
                 FROM policyImage PIM
