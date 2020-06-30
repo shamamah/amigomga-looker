@@ -123,22 +123,13 @@ view: dt_premiums {
     sql: ${TABLE}.totalearnedpremium ;;
   }
 
-  dimension: measures_list {
-    case: {
-      when: {
-        label: "Incurred Loss"
-        sql: 1=1 ;;
-      }
-      when: {
-        label: "Earned Premium"
-        sql: 1=1 ;;
-      }
-      when: {
-        label: "Loss Ratio"
-        sql: 1=1 ;;
-      }
-    }
+  measure: avgWritten {
+    label: "Avg Written"
+    type: average
+    value_format: "0.##"
+    sql: ${TABLE}.totalwrittenpremium ;;
   }
+
 
   dimension: year {
     type: number

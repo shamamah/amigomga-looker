@@ -205,6 +205,12 @@ view: dt_policy_pif {
       sql: ${TABLE}.premium_chg_written ;;
     }
 
+    measure: avgwritten_premium {
+      label: "Avg Written Premium"
+      type: average
+      sql: ${TABLE}.premium_chg_written ;;
+    }
+
     dimension: cash_collected {
       type: number
       sql: ${TABLE}.CashCollected ;;

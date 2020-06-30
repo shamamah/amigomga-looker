@@ -1,12 +1,4 @@
 view: dt_mtd_claims {
-  filter: year {
-    type:  number
-  hidden: yes
-    }
-    filter: month {
-      type: number
-      hidden: yes
-    }
   derived_table: {
       sql: SELECT
           CFE.Year,
@@ -57,9 +49,7 @@ view: dt_mtd_claims {
         INNER JOIN [Version] V WITH(NOLOCK)
           ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
         WHERE
-          CFE.claimeoplevel_id = 3 AND
-          {% condition year %} cfe.year {% endcondition %} AND
-          {% condition month %} cfe.month {% endcondition %}
+          CFE.claimeoplevel_id = 3
         GROUP BY
           CFE.Year,
           CFE.Month,
@@ -89,6 +79,18 @@ view: dt_mtd_claims {
       hidden: yes
       sql: ${TABLE}.company_id ;;
     }
+
+  dimension: year {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.year ;;
+  }
+
+  dimension: month {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.month ;;
+  }
 
     dimension: state_id {
       type: number

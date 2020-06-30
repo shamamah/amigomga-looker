@@ -122,7 +122,12 @@ explore: dt_premiums {
       view_label: "Claims"
       type: left_outer
       relationship: many_to_one
-      sql_on: ${dt_premiums.itd_premiums_primarykey} = ${dt_mtd_claims.itd_claims_primarykey};;
+      sql_on: ${dt_premiums.policy_id} = ${dt_mtd_claims.policy_id}
+            AND ${dt_premiums.renewal_ver} = ${dt_mtd_claims.renewal_ver}
+            AND ${dt_premiums.unit_num} = ${dt_mtd_claims.vehicle_num}
+            AND ${dt_premiums.coveragecode_id} = ${dt_mtd_claims.coveragecode_id}
+            AND ${dt_premiums.year} = ${dt_mtd_claims.year}
+            AND ${dt_premiums.month} = ${dt_mtd_claims.month};;
     }
 
     join: reinsurance_treaty {
