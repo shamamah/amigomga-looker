@@ -35,6 +35,7 @@ explore: dt_policy_pif {
 
   join: version {
     type: inner
+    fields: []
     sql_on: ${version.version_id} = ${dt_policyimage_num_unique.version_id};;
     relationship: one_to_many
 
@@ -44,5 +45,11 @@ explore: dt_policy_pif {
     type: inner
     sql_on: ${company_state_lob.companystatelob_id} = ${version.companystatelob_id} ;;
     relationship: one_to_one
+  }
+
+  join: reinsurance_treaty {
+    type: inner
+    sql_on: ${dt_policy_pif.eff_date} between ${reinsurance_treaty.effective_date} AND ${reinsurance_treaty.expiration_date} ;;
+    relationship: one_to_many
   }
 }
