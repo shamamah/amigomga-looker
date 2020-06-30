@@ -223,15 +223,10 @@ view: dt_policy_pif {
 
     set: detail {
       fields: [
-        policy_id,
-        policyimage_num,
         policy,
-        renewal_ver,
         eff_date,
         exp_date,
-        tran_eff_date,
         written_premium,
-        cash_collected,
         inforce
       ]
     }

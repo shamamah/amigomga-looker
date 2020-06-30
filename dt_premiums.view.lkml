@@ -13,6 +13,8 @@ view: dt_premiums {
 --        Policyimage_num,
         renewal_ver,
         unit_num,
+        policy,
+        eff_date,
         SUM(TotalEarnedPremium) as TotalEarnedPremium,
         SUM(TotalWrittenPremium) as TotalWrittenPremium
         FROM (SELECT
@@ -27,6 +29,8 @@ view: dt_premiums {
     --            Policyimage_num,
                 renewal_ver,
                 unit_num,
+                policy,
+                emp.eff_date,
                 SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
                 SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
           FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
@@ -46,7 +50,9 @@ view: dt_premiums {
             policy_id,
  --           Policyimage_num,
             renewal_ver,
-            unit_num
+            unit_num,
+            policy,
+            emp.eff_date
 
 
           UNION ALL
@@ -63,6 +69,8 @@ view: dt_premiums {
 --            Policyimage_num,
             renewal_ver,
             unit_num,
+            policy,
+            emp.eff_date,
             SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
             SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
           FROM EOPPremiums EMP WITH(NOLOCK)
@@ -80,7 +88,9 @@ view: dt_premiums {
             policy_id,
  --           Policyimage_num,
             renewal_ver,
-            unit_num) xx
+            unit_num,
+            policy,
+            emp.eff_date) xx
       Group by
             Year,
             Month,
@@ -92,7 +102,9 @@ view: dt_premiums {
             policy_id,
   --          Policyimage_num,
             renewal_ver,
-            unit_num
+            unit_num,
+            policy,
+            eff_date
  ;;
   }
 
@@ -107,12 +119,14 @@ view: dt_premiums {
     label: "Total Earned Premium"
     type: sum
     sql: ${TABLE}.totalearnedpremium ;;
+    drill_fields: [detail*]
   }
 
   measure: total_written_premium {
     label: "Total Written Premium"
     type: sum
     sql: ${TABLE}.totalwrittenpremium ;;
+    drill_fields: [detail*]
   }
 
 
@@ -196,6 +210,26 @@ view: dt_premiums {
     type: number
     hidden: yes
     sql: ${TABLE}.renewal_ver ;;
+  }
+
+  dimension: policy {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.policy ;;
+  }
+
+  dimension: eff_date {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.eff_date ;;
+  }
+  set: detail {
+    fields: [
+      policy,
+      eff_date,
+      total_earned_premium,
+      total_written_premium
+    ]
   }
 
 }

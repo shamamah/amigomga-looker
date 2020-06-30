@@ -12,6 +12,9 @@ view: dt_mtd_claims {
 --          PolicyImage.Policyimage_num,
           PolicyImage.renewal_ver,
           ISNULL(CCV.Vehicle_num, 1) as vehicle_num,
+          policy,
+          PolicyImage.eff_date,
+          claim_number,
           SUM(indemnity_reserve) AS LossReserve,
           SUM(indemnity_paid) AS LossPaid,
           SUM(salvage) AS Salvage,
@@ -61,7 +64,10 @@ view: dt_mtd_claims {
           PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
           PolicyImage.renewal_ver,
-          ISNULL(CCV.Vehicle_num, 1)
+          ISNULL(CCV.Vehicle_num, 1),
+          policy,
+          PolicyImage.eff_date,
+          claim_number
        ;;
     }
 
@@ -69,16 +75,16 @@ view: dt_mtd_claims {
     dimension: itd_claims_primarykey {
       primary_key: yes
       hidden: yes
-      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month);;
+      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month,  ' ', ${TABLE}.claim_number);;
     }
 
 
 
-    dimension: company_id {
-      type: number
-      hidden: yes
-      sql: ${TABLE}.company_id ;;
-    }
+  dimension: company_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.company_id ;;
+  }
 
   dimension: year {
     type: number
@@ -137,21 +143,25 @@ view: dt_mtd_claims {
     measure: loss_reserve {
       type: sum
       sql: ${TABLE}.LossReserve ;;
+      drill_fields: [detail*]
     }
 
     measure: loss_paid {
       type: sum
       sql: ${TABLE}.LossPaid ;;
+      drill_fields: [detail*]
     }
 
     measure: salvage {
       type: sum
       sql: ${TABLE}.Salvage ;;
+      drill_fields: [detail*]
     }
 
     measure: subro {
       type: sum
       sql: ${TABLE}.Subro ;;
+      drill_fields: [detail*]
     }
 
     measure: expense_reserve {
@@ -162,24 +172,59 @@ view: dt_mtd_claims {
     measure: expense_paid {
       type: sum
       sql: ${TABLE}.expense_paid ;;
+      drill_fields: [detail*]
     }
 
     measure: incurred_with_expense_ss {
       label: "INC Paid+Expenses+Reserves-SS"
       type: sum
       sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve + ${TABLE}.expense_paid + ${TABLE}.expense_reserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
+      drill_fields: [detail*]
     }
 
     measure: incurred_gross_pd {
       label: "INC Paid+Reserves"
       type: sum
       sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve;;
+      drill_fields: [detail*]
     }
 
     measure: incurred_net_pd_ss {
       label: "INC Paid+Reserves-SS"
       type: sum
       sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
+      drill_fields: [detail*]
     }
+
+    dimension: policy {
+      type: string
+      hidden: yes
+      sql: ${TABLE}.policy ;;
+    }
+
+    dimension: eff_date {
+      type: string
+      hidden: yes
+      sql: ${TABLE}.eff_date ;;
+    }
+
+    dimension: claim_number {
+      type: string
+      hidden: yes
+      sql: ${TABLE}.claim_number ;;
+    }
+
+    set: detail {
+    fields: [
+      policy,
+      eff_date,
+      claim_number,
+      loss_reserve,
+      loss_paid,
+      expense_paid,
+      salvage,
+      subro
+    ]
+  }
 
   }
