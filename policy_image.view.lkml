@@ -194,6 +194,7 @@ view: policy_image {
 
   measure: count {
     type:  count
+    drill_fields: [policyimage_drill*]
   }
 
   measure: sum_premium_chg_written {
@@ -211,14 +212,9 @@ view: policy_image {
   set: policyimage_drill {
     fields: [
       policy,
-      policyimage_num,
       eff_date,
       exp_date,
-      teff_date,
-      texp_date,
-      trans_type.dscr,
-      trans_reason.dscr,
-      trans_date_date
+      premium_written
     ]
   }
 }

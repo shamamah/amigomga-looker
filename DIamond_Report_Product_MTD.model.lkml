@@ -28,24 +28,47 @@ explore: dt_premiums {
       AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
 
+  join: dt_garaging_territory_zip {
+    view_label: "Policy"
+    type:  inner
+    relationship: one_to_one
+    sql_on: ${dt_garaging_territory_zip.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_garaging_territory_zip.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+  }
+
   join: policy_image {
     view_label: "Policy"
     type: inner
-    fields: [count, policy_number, renewal_ver, eff_date]
+#     fields: [count, policy_number, renewal_ver, eff_date]
     relationship: many_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: v_agency {
+    type: inner
+    sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
+    relationship: one_to_many
+  }
 
   join: vehicle {
     view_label: "Vehicle"
     type: inner
-    fields: [vehicle.year, vehicle.class_code]
+    fields: [vehicle.year, vehicle.class_code, vehicle.isocollisionsymbol]
     relationship: one_to_many
     sql_on: ${vehicle.policy_id} = ${dt_policyimage_num_unique.policy_id}
           AND  ${vehicle.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num}
           AND ${vehicle.vehicle_num} = ${dt_premiums.unit_num};;
+  }
+
+  join: vehicle_symbol {
+    view_label: "Vehicle"
+    type: inner
+    fields: [vehicle_symbol.useroverride_symbol]
+    relationship: one_to_many
+    sql_on: ${vehicle.policy_id} = ${vehicle_symbol.policy_id}
+          AND  ${vehicle.policyimage_num} = ${vehicle_symbol.policyimage_num}
+          AND ${vehicle.vehicle_num} = ${vehicle_symbol.vehicle_num};;
   }
 
   join: v_vehicle_coverage {
