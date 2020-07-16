@@ -26,6 +26,13 @@ explore: claim_transaction {
 
   }
 
+#   join: dt_claim_days_open {
+#     view_label: "Claim 1"
+#     type: inner
+#     relationship: one_to_one
+#     sql_on: ${dt_claim_days_open.claimcontrol_id} = ${claim_control.claimcontrol_id} ;;
+#   }
+
   join: policy_image {
     type: inner
     sql_on: ${claim_control.policy_id} = ${policy_image.policy_id}
@@ -136,9 +143,10 @@ explore: claim_transaction {
   join: dt_claimcount {
     view_label: "Claim Counts"
     type:  inner
-    sql_on: ${dt_claimcount.claimcontrol_id} = ${claim_feature.claimcontrol_id}
-          AND ${dt_claimcount.claimant_num} = ${claim_feature.claimant_num}
-          AND ${claim_feature.claimfeature_num} = ${dt_claimcount.claimfeature_num};;
+    sql_on: ${dt_claimcount.claimcontrol_id} = ${v_claimtransaction_adjust2.claimcontrol_id}
+          AND ${dt_claimcount.claimant_num} = ${v_claimtransaction_adjust2.claimant_num}
+          AND ${v_claimtransaction_adjust2.claimfeature_num} = ${dt_claimcount.claimfeature_num};;
+#           AND ${claim_transaction.added_date} = ${dt_claimcount.processingdate_date};;
     relationship: many_to_one
   }
 

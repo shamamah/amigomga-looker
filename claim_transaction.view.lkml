@@ -5,7 +5,7 @@ view: claim_transaction {
     type: string
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${claimcontrol_id},${claimant_num},${claimfeature_num},${claimtransaction_num}) ;;
+    sql: CONCAT(${claimcontrol_id},' ',${claimant_num},' ',${claimfeature_num},' ',${claimtransaction_num}) ;;
   }
 
   dimension: claimcontrol_id {
@@ -19,6 +19,26 @@ view: claim_transaction {
     type: time
     timeframes: [date,week,month,quarter,year]
     sql: ${TABLE}.pcadded_date ;;
+  }
+
+  dimension_group: eff_date {
+    label: "Transaction Eff Date"
+    type: time
+    timeframes: [date,week,month,quarter,year]
+    sql: ${TABLE}.eff_date;;
+  }
+
+  dimension_group: check_date {
+    label: "Check Date"
+    type: time
+    timeframes: [date,week,month,quarter,year]
+    sql: ${TABLE}.check_date;;
+  }
+
+  dimension: added_date {
+    hidden: yes
+    type: date
+    sql: ${TABLE}.added_date ;;
   }
 
   dimension: claimant_num {

@@ -10,12 +10,12 @@ view: v_claimtransaction_adjust2 {
       type: string
       primary_key: yes
       hidden: yes
-      sql: CONCAT(${claimcontrol_id},${claimant_num},${claimfeature_num},${claimtransaction_num}) ;;
+      sql: CONCAT(${claimcontrol_id},' ',${claimant_num},' ',${claimfeature_num},' ',${claimtransaction_num}) ;;
     }
 
     dimension: policy_id {
       type: number
-      sql: ${TABLE}.policy_id ;;
+      sql: ${TABLE}.policy ;;
     }
 
     dimension: policyimage_num {
@@ -142,13 +142,21 @@ view: v_claimtransaction_adjust2 {
       type: sum
       sql: ${TABLE}.indemnity_reserve;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
 
     measure: indemnity_paid {
       type: sum
       sql: ${TABLE}.indemnity_paid ;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
+
+#     measure: avg_indemnity_paid {
+#       type: average
+#       sql: ${TABLE}.indemnity_paid ;;
+#       value_format_name: usd
+#     }
 
     measure: expense_reserve {
       type: sum
@@ -157,10 +165,17 @@ view: v_claimtransaction_adjust2 {
     }
 
     measure: expense_paid {
-      type: string
+      type: sum
       sql: ${TABLE}.expense_paid ;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
+
+#     measure: avg_expense_paid {
+#       type: average
+#       sql: ${TABLE}.expense_paid ;;
+#       value_format_name: usd
+#     }
 
     measure: alae_reserve {
       type: sum
@@ -172,6 +187,7 @@ view: v_claimtransaction_adjust2 {
       type: sum
       sql: ${TABLE}.alae_paid ;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
 
     measure: expense_recovery {
@@ -194,6 +210,7 @@ view: v_claimtransaction_adjust2 {
       type: sum
       sql: ${TABLE}.salvage ;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
 
     dimension: ant_subro {
@@ -205,6 +222,7 @@ view: v_claimtransaction_adjust2 {
       type: sum
       sql: ${TABLE}.subro ;;
       value_format_name: usd
+      drill_fields: [detail*]
     }
 
     dimension: ant_other_recovery {
@@ -256,51 +274,14 @@ view: v_claimtransaction_adjust2 {
     set: detail {
       fields: [
         policy_id,
-        policyimage_num,
         claimcontrol_id,
-        claimant_num,
-        claimfeature_num,
-        claimtransaction_num,
-        claimtransactiontype_id,
-        claimtransactionstatus_id,
-        calc,
-        amount,
-        users_id,
-        adjust_indemnity_reserve,
-        adjust_indemnity_paid,
-        adjust_expense_reserve,
-        adjust_expense_paid,
-        adjust_alae_reserve,
-        adjust_alae_paid,
-        adjust_expense_recovery,
-        adjust_ant_expense_recovery,
-        adjust_ant_salvage,
-        adjust_salvage,
-        adjust_ant_subro,
-        adjust_subro,
-        adjust_ant_other_recovery,
-        adjust_other_recovery,
         indemnity_reserve,
         indemnity_paid,
-        expense_reserve,
         expense_paid,
-        alae_reserve,
         alae_paid,
-        expense_recovery,
-        ant_expense_recovery,
-        ant_salvage,
         salvage,
-        ant_subro,
         subro,
-        ant_other_recovery,
-        other_recovery,
-        old_reserve,
-        eff_date_time,
-        added_date,
-        pcadded_date_time,
-        report_payment,
-        report_cash,
-        claimscheduledpaymentcycle_id
+        eff_date_date
       ]
     }
   }

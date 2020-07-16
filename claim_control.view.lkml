@@ -3,6 +3,7 @@ view: claim_control {
 
   dimension_group: added {
     label: "Processed"
+    hidden: yes
     type: time
     timeframes: [date]
     convert_tz: no
@@ -129,7 +130,7 @@ view: claim_control {
 
   dimension_group: loss_date {
     type: time
-    label: "Loss"
+    label: "Loss Date"
     timeframes: [date,week,quarter,year,month]
     sql: ${TABLE}.loss_date ;;
   }
@@ -154,7 +155,7 @@ view: claim_control {
 
   dimension_group: reported_date {
     type: time
-    label: "Reported"
+    label: "Reported Date"
     timeframes: [date,month,quarter,year,day_of_week,hour_of_day]
     sql: ${TABLE}.reported_date ;;
   }

@@ -95,11 +95,12 @@ view: dt_claimcount {
                     AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
                   ON V.version_id = PolImg.version_id) a
-       ;;
+         ;;
     }
 
     measure: count {
-      type: count
+      type: count_distinct
+      sql: ${claimcontrol_id} ;;
       drill_fields: [detail*]
     }
 
@@ -197,6 +198,7 @@ view: dt_claimcount {
     measure: outstanding {
       type: sum
       sql: ${TABLE}.Outstanding ;;
+      drill_fields: [detail*]
 
     }
 
