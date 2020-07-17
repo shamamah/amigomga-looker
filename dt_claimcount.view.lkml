@@ -224,7 +224,8 @@ view: dt_claimcount {
         eff_date,
         claim_number,
         feat_dscr,
-        action_type
+        v_claimtransaction_adjust2.indemnity_paid,
+        v_claimtransaction_adjust2.indemnity_reserve
         ]
     }
   }
