@@ -45,6 +45,15 @@ explore: dt_premiums {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+
+  join: dt_total_discount_percent {
+    view_label: "Policy"
+    type: left_outer
+    sql_on: ${dt_total_discount_percent.policy_id} = ${policy_image.policy_id}
+      AND ${dt_total_discount_percent.policyimage_num} = ${policy_image.policyimage_num};;
+    relationship: one_to_many
+  }
+
   join: v_agency {
     type: inner
     sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;

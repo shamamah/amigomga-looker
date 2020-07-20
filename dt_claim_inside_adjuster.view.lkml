@@ -30,19 +30,19 @@ view: dt_claim_inside_adjuster {
   }
 
   dimension: initials {
-    label: "Examiner Initials"
+    label: "Adjuster Initials"
     type: string
     sql: case when ${TABLE}.initials IS NULL then '--' else ${TABLE}.initials end ;;
   }
 
   dimension: adjuster_name {
-    label: "Examiner"
+    label: "Adjuster"
     type: string
     sql: case when ${TABLE}.Adjuster_Name IS NULL then 'Unassigned' else ${TABLE}.Adjuster_Name end ;;
   }
 
   dimension: active {
-    label: "Examiner Active (Yes/No)"
+    label: "Adjuster Active (Yes/No)"
     type: string
     sql: case when ${TABLE}.Active=1 then 'Yes' else (case when ${TABLE}.Active=0 then 'No' else 'N/A' end) end ;;
   }

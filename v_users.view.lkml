@@ -54,6 +54,12 @@ view: v_users {
     sql: ${TABLE}.display_name ;;
   }
 
+  dimension: display_name1 {
+    label: "Adjuster Name"
+    type: string
+    sql: ${TABLE}.display_name ;;
+  }
+
   dimension: failed_login_attempt_count {
     hidden: yes
     type: number

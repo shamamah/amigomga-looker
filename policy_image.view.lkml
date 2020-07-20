@@ -39,7 +39,6 @@ view: policy_image {
   }
 
   dimension: policystatuscode_id {
-    hidden: yes
     type: number
     sql: ${TABLE}.policystatuscode_id ;;
   }

@@ -33,7 +33,7 @@ view: dt_claimcount {
                 CASE WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is not NULL THEN 'Closed Pay'
                   WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is NULL THEN 'Closed w/o Pay'
                    ELSE 'Open' END as ActionType,
-                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE 0 END as Outstanding,
+                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
                 policy,
                 eff_date
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
@@ -43,6 +43,7 @@ view: dt_claimcount {
                   ON ClmFeat.claimcontrol_id = CFA.claimcontrol_id
                   AND ClmFeat.claimant_num = CFA.claimant_num
                   AND ClmFeat.claimfeature_num = CFA.claimfeature_num
+          AND claimactivitycode_id IN (1, 2)
                 LEFT OUTER JOIN
                   (Select min(cx.added_date) added_date, cx.claimcontrol_id, claimant_num, claimfeature_num
                     from ClaimFinancials cx
@@ -60,13 +61,7 @@ view: dt_claimcount {
                     AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
                   ON V.version_id = PolImg.version_id
-                WHERE     CFA.num = (
-                          SELECT MAX(num)
-                          FROM ClaimFeatureActivity WITH(NOLOCK)
-                          WHERE claimcontrol_id = CFA.claimcontrol_id
-                            AND claimant_num = CFA.claimant_num
-                            AND claimfeature_num = CFA.claimfeature_num
-                            AND claimactivitycode_id IN (1, 2))
+
 
                 UNION ALL
 
@@ -94,14 +89,25 @@ view: dt_claimcount {
                   ON CC.policy_id = PolImg.policy_id
                     AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
-                  ON V.version_id = PolImg.version_id) a
-         ;;
+                  ON V.version_id = PolImg.version_id) a;;
     }
 
     measure: count {
       type: count_distinct
       sql: ${claimcontrol_id} ;;
       drill_fields: [detail*]
+    }
+
+    measure: closed_count {
+      label: "Closed Pay"
+      type: sum
+      sql: CASE WHEN ${action_type} = 'Closed Pay' THEN 1 ELSE 0 END;;
+    }
+
+    measure: closed_count1 {
+      label: "Closed w/o Pay"
+      type: sum
+      sql: CASE WHEN ${action_type} = 'Closed w/o Pay' THEN 1 ELSE 0 END;;
     }
 
     dimension: id {
