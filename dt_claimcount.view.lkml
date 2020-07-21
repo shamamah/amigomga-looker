@@ -16,7 +16,8 @@ view: dt_claimcount {
         ActionType,
         Outstanding,
         policy,
-        eff_date
+        eff_date,
+        paid
         from (Select
                 CAST(cfa.Added_date as Datetime) ProcessingDate,
                 cc.Reported_Date,
@@ -35,7 +36,8 @@ view: dt_claimcount {
                    ELSE 'Open' END as ActionType,
                 CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
                 policy,
-                eff_date
+                eff_date,
+                CASE WHEN z.claimcontrol_id is not NULL THEN 1 ELSE 0 END as paid
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -43,7 +45,7 @@ view: dt_claimcount {
                   ON ClmFeat.claimcontrol_id = CFA.claimcontrol_id
                   AND ClmFeat.claimant_num = CFA.claimant_num
                   AND ClmFeat.claimfeature_num = CFA.claimfeature_num
-          AND claimactivitycode_id IN (1, 2)
+                  AND claimactivitycode_id IN (1, 2)
                 LEFT OUTER JOIN
                   (Select min(cx.added_date) added_date, cx.claimcontrol_id, claimant_num, claimfeature_num
                     from ClaimFinancials cx
@@ -81,7 +83,8 @@ view: dt_claimcount {
                 'Reported' as ActionType,
                 0 as Outstanding,
                 policy,
-                eff_date
+                eff_date,
+                0 as paid
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -92,22 +95,39 @@ view: dt_claimcount {
                   ON V.version_id = PolImg.version_id) a;;
     }
 
-    measure: count {
-      type: count_distinct
-      sql: ${claimcontrol_id} ;;
-      drill_fields: [detail*]
+
+    dimension: action_type {
+      label: "Claim Status"
+      type: string
+      sql: ${TABLE}.ActionType;;
     }
 
     measure: closed_count {
       label: "Closed Pay"
-      type: sum
-      sql: CASE WHEN ${action_type} = 'Closed Pay' THEN 1 ELSE 0 END;;
+      type: count
+      filters: [action_type: "Closed Pay"]
+      drill_fields: [detail*]
     }
 
     measure: closed_count1 {
       label: "Closed w/o Pay"
+      type: count
+      filters: [action_type: "Closed w/o Pay"]
+      drill_fields: [detail*]
+    }
+
+    measure: closed_count2 {
+      label: "Reported"
+      type: count
+      filters: [action_type: "Reported"]
+      drill_fields: [detail*]
+    }
+
+    measure: closed_count3 {
+      label: "Paid"
       type: sum
-      sql: CASE WHEN ${action_type} = 'Closed w/o Pay' THEN 1 ELSE 0 END;;
+      sql: ${TABLE}.paid;;
+      drill_fields: [detail*]
     }
 
     dimension: id {
@@ -186,12 +206,6 @@ view: dt_claimcount {
       sql: ${TABLE}.claimcontrol_id ;;
     }
 
-    dimension: action_type {
-      label: "Claim Status"
-      type: string
-      sql: ${TABLE}.ActionType;;
-    }
-
     dimension: claim_age {
       type: number
       sql: DATEDIFF(day,${TABLE}.reported_date, GETDATE()) ;;
@@ -230,6 +244,9 @@ view: dt_claimcount {
         eff_date,
         claim_number,
         feat_dscr,
+        claimant_num,
+        claimfeature_num,
+        claim_feature.coverage_dscr,
         v_claimtransaction_adjust2.indemnity_paid,
         v_claimtransaction_adjust2.indemnity_reserve
         ]
