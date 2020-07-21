@@ -178,12 +178,12 @@ explore: claim_feature {
       relationship: one_to_many
     }
 
-    join: dt_claimcount {
+    join: dt_claimcount_mgmt {
       view_label: "Claim Counts"
       type:  inner
-      sql_on: ${dt_claimcount.claimcontrol_id} = ${claim_feature.claimcontrol_id}
-          AND ${dt_claimcount.claimant_num} = ${claim_feature.claimant_num}
-          AND ${claim_feature.claimfeature_num} = ${dt_claimcount.claimfeature_num};;
+      sql_on: ${dt_claimcount_mgmt.claimcontrol_id} = ${claim_feature.claimcontrol_id}
+          AND ${dt_claimcount_mgmt.claimant_num} = ${claim_feature.claimant_num}
+          AND ${dt_claimcount_mgmt.claimfeature_num} = ${claim_feature.claimfeature_num};;
 #           AND ${claim_transaction.added_date} = ${dt_claimcount.processingdate_date};;
         relationship: many_to_one
 #         fields: [dt_claimcount.age_bucket, dt_claimcount.claim_age, dt_claimcount.claim_number,
