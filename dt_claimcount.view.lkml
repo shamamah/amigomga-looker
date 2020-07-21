@@ -16,8 +16,7 @@ view: dt_claimcount {
         ActionType,
         Outstanding,
         policy,
-        eff_date,
-        paid
+        eff_date
         from (Select
                 CAST(cfa.Added_date as Datetime) ProcessingDate,
                 cc.Reported_Date,
@@ -34,10 +33,9 @@ view: dt_claimcount {
                 CASE WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is not NULL THEN 'Closed Pay'
                   WHEN CFA.claimactivitycode_id = 2 AND z.claimcontrol_id is NULL THEN 'Closed w/o Pay'
                    ELSE 'Open' END as ActionType,
-                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
+                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE 0 END as Outstanding,
                 policy,
-                eff_date,
-                CASE WHEN z.claimcontrol_id is not NULL THEN 1 ELSE 0 END as paid
+                eff_date
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -45,7 +43,6 @@ view: dt_claimcount {
                   ON ClmFeat.claimcontrol_id = CFA.claimcontrol_id
                   AND ClmFeat.claimant_num = CFA.claimant_num
                   AND ClmFeat.claimfeature_num = CFA.claimfeature_num
-                  AND claimactivitycode_id IN (1, 2)
                 LEFT OUTER JOIN
                   (Select min(cx.added_date) added_date, cx.claimcontrol_id, claimant_num, claimfeature_num
                     from ClaimFinancials cx
@@ -63,6 +60,14 @@ view: dt_claimcount {
                     AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
                   ON V.version_id = PolImg.version_id
+                WHERE CFA.num = (
+                          SELECT MAX(num)
+                          FROM dbo.ClaimFeatureActivity WITH (NOLOCK)
+                          WHERE claimcontrol_id = CFA.claimcontrol_id
+                              AND claimant_num = CFA.claimant_num
+                              AND claimfeature_num = CFA.claimfeature_num
+                              AND claimactivitycode_id IN (1, 2)
+                                )
 
 
                 UNION ALL
@@ -83,8 +88,7 @@ view: dt_claimcount {
                 'Reported' as ActionType,
                 0 as Outstanding,
                 policy,
-                eff_date,
-                0 as paid
+                eff_date
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -106,33 +110,33 @@ view: dt_claimcount {
       sql: ${TABLE}.ActionType;;
     }
 
-    measure: closed_count {
-      label: "Closed Pay"
-      type: count
-      filters: [action_type: "Closed Pay"]
-      drill_fields: [detail*]
-    }
-
-    measure: closed_count1 {
-      label: "Closed w/o Pay"
-      type: count
-      filters: [action_type: "Closed w/o Pay"]
-      drill_fields: [detail*]
-    }
-
-    measure: closed_count2 {
-      label: "Reported"
-      type: count
-      filters: [action_type: "Reported"]
-      drill_fields: [detail*]
-    }
-
-    measure: closed_count3 {
-      label: "Paid"
-      type: sum
-      sql: ${TABLE}.paid;;
-      drill_fields: [detail*]
-    }
+#     measure: closed_count {
+#       label: "Closed Pay"
+#       type: count
+#       filters: [action_type: "Closed Pay"]
+#       drill_fields: [detail*]
+#     }
+#
+#     measure: closed_count1 {
+#       label: "Closed w/o Pay"
+#       type: count
+#       filters: [action_type: "Closed w/o Pay"]
+#       drill_fields: [detail*]
+#     }
+#
+#     measure: closed_count2 {
+#       label: "Reported"
+#       type: count
+#       filters: [action_type: "Reported"]
+#       drill_fields: [detail*]
+#     }
+#
+#     measure: closed_count3 {
+#       label: "Paid"
+#       type: sum
+#       sql: ${TABLE}.paid;;
+#       drill_fields: [detail*]
+#     }
 
     dimension: id {
       type: number
@@ -247,9 +251,7 @@ view: dt_claimcount {
         policy,
         eff_date,
         claim_number,
-        feat_dscr,
         claimant_num,
-        claimfeature_num,
         claim_feature.coverage_dscr,
         v_claimtransaction_adjust2.indemnity_paid,
         v_claimtransaction_adjust2.indemnity_reserve
