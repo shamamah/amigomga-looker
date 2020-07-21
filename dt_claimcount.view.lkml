@@ -95,6 +95,10 @@ view: dt_claimcount {
                   ON V.version_id = PolImg.version_id) a;;
     }
 
+    measure: count {
+      type: count
+      drill_fields: [detail*]
+    }
 
     dimension: action_type {
       label: "Claim Status"
