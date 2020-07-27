@@ -3,6 +3,9 @@ connection: "c76-reporting"
 # include all the views
 include: "*.view"
 
+fiscal_month_offset: 0
+week_start_day: sunday
+
 explore: claim_feature {
   group_label: "Diamond Analytics (REPORT)"
   label: "Claim Management"
@@ -64,24 +67,6 @@ explore: claim_feature {
       type: inner
       sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
       relationship: one_to_many
-    }
-
-
-    join: claim_transaction {
-      type:  left_outer
-      sql_on: ${claim_feature.claimcontrol_id} = ${claim_transaction.claimcontrol_id}
-          AND ${claim_feature.claimant_num} = ${claim_transaction.claimant_num}
-          AND ${claim_feature.claimfeature_num} = ${claim_transaction.claimfeature_num};;
-      relationship: many_to_one
-
-    }
-
-    join: v_claimtransaction_adjust2 {
-      type: inner
-      view_label: "Claim Detail"
-      sql_on: ${claim_transaction.compound_primary_key}=${v_claimtransaction_adjust2.compound_primary_key} ;;
-      relationship: one_to_one
-      fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage]
     }
 
 
@@ -152,12 +137,6 @@ explore: claim_feature {
       fields: [claim_catastrophe.dscr]
     }
 
-    join: claim_transaction_type {
-      type: inner
-      sql_on: ${claim_transaction.claimtransactiontype_id}=${claim_transaction_type.claimtransactiontype_id};;
-      relationship: one_to_many
-      fields: []
-    }
 
     join: version {
       type: inner
@@ -192,5 +171,29 @@ explore: claim_feature {
 #           dt_claimcount.closed_count1, dt_claimcount.count, dt_claimcount.closed_count2, dt_claimcount.closed_count3,
 #           dt_claimcount.outstanding]
       }
+
+  join: claim_transaction {
+    type:  left_outer
+    sql_on: ${claim_feature.claimcontrol_id} = ${claim_transaction.claimcontrol_id}
+          AND ${claim_feature.claimant_num} = ${claim_transaction.claimant_num}
+          AND ${claim_feature.claimfeature_num} = ${claim_transaction.claimfeature_num};;
+    relationship: many_to_one
+
+  }
+
+  join: v_claimtransaction_adjust2 {
+    type: inner
+    view_label: "Claim Detail"
+    sql_on: ${claim_transaction.compound_primary_key}=${v_claimtransaction_adjust2.compound_primary_key} ;;
+    relationship: one_to_one
+    fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage]
+  }
+
+  join: claim_transaction_type {
+    type: inner
+    sql_on: ${claim_transaction.claimtransactiontype_id}=${claim_transaction_type.claimtransactiontype_id};;
+    relationship: one_to_many
+    fields: []
+  }
 
     }

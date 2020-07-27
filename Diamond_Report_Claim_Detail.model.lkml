@@ -3,6 +3,9 @@ connection: "c76-reporting"
 # include all the views
 include: "*.view"
 
+fiscal_month_offset: 0
+week_start_day: sunday
+
 explore: claim_transaction {
   group_label: "Diamond Analytics (REPORT)"
   label: "Claim Detail"

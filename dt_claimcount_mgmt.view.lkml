@@ -127,6 +127,13 @@ view: dt_claimcount_mgmt {
       drill_fields: [detail*]
     }
 
+    measure: open_count {
+      label: "Opened"
+      type: count
+      filters: [action_type: "Open"]
+      drill_fields: [detail*]
+    }
+
     measure: closed_count3 {
       label: "Paid"
       type: sum

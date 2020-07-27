@@ -8,7 +8,7 @@ view: dt_policy_pif {
             pim.Renewal_ver,
             Eff_date,
             Exp_date,
-            cast(pim.trans_date as Date) TransDate,
+            cast(cast(pim.trans_date as Date) as Datetime) TransDate,
             CASE WHEN TransType_id in (1,7) THEN 'CN'
               WHEN TransType_id = 2 THEN 'NB'
               WHEN TransType_id = 4 THEN 'RN' --and policystatuscode_id not in (9, 10)
@@ -54,7 +54,7 @@ view: dt_policy_pif {
             pim.Renewal_ver,
             Eff_date,
             Exp_date,
-            cast(exp_date as Date),
+            cast(cast(exp_date as Date) as Datetime),
             'EX' TransType,
             --CAST(exp_date as date),
             CAST(cast(exp_date as Datetime) + 1 - (@@DATEFIRST + DATEPART(WEEKDAY,cast(exp_date as Datetime))) % 7 AS DATE) as TransWeek,
@@ -201,8 +201,16 @@ view: dt_policy_pif {
     }
 
     measure: written_premium {
+      label: "Trans Writ Prem"
       type: sum
       sql: ${TABLE}.premium_chg_written ;;
+    }
+
+    measure: written_premium_total {
+      label: "Total Writ Prem"
+      type: sum
+      sql: ${TABLE}.premium_chg_written ;;
+      filters: [trans_type: "NB, RN"]
     }
 
     measure: avgwritten_premium {
