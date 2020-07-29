@@ -155,6 +155,13 @@ view: dt_premiums {
     sql: ${TABLE}.month ;;
   }
 
+  dimension_group: first_of_month {
+    label: "First of Month"
+    type: time
+    sql: cast(cast(${TABLE}.year as varchar(4))+'-'+RIGHT(CAST('00' + ${TABLE}.month as varchar(4)),2)+'-01' as datetime) ;;
+    timeframes: [month]
+  }
+
   dimension: new_renewal {
     label: "New vs. Renewal"
     type: string
@@ -223,6 +230,7 @@ view: dt_premiums {
     hidden: yes
     sql: ${TABLE}.eff_date ;;
   }
+
   set: detail {
     fields: [
       policy,

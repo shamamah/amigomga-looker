@@ -69,13 +69,16 @@ view: dt_claims_jp {
 
 
     dimension: itd_claims_primarykey {
-      primary_key: yes
       hidden: yes
-      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month);;
+#       sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month,  ' ', ${TABLE}.eff_date);;
+      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num);;
     }
 
-
-
+    dimension: itd_claims_primary_key {
+      primary_key: yes
+      hidden: yes
+      sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num,  ' ', ${TABLE}.year,  ' ', ${TABLE}.month,  ' ', ${TABLE}.eff_date);;
+    }
 
     dimension: company_id {
       type: number
