@@ -6,8 +6,10 @@ view: dt_cash_and_fees {
           V.company_id,
           V.State_id,
           V.Lob_id,
+          LOB.Lobname,
           A.Agency_id,
           A.agencygroup_id,
+          pim.policy,
           pim.policy_id,
           pim.policyimage_num,
           pim.eff_date,
@@ -15,10 +17,14 @@ view: dt_cash_and_fees {
           ISNULL(BCIC.dscr, 'Other') as PaymentType,
           COALESCE(BCCT.dscr, BCDT.dscr) AS CashDetailDscr,
           ISNULL(BCIS.dscr, 'UnKnown') AS CashSource,
+          U.display_name + ' - ' + U.login_name AS login_name,
           -SUM(COALESCE(BCMD.amount, BCD.amount)) AS amount,
+          CASE WHEN COALESCE(BCCT.dscr, BCDT.dscr) like '%Premium%' THEN -SUM(BC.amount) ELSE 0 END as pay_amount,
           -SUM(CASE WHEN COALESCE(BCCT.dscr, BCDT.dscr) = 'Premium'
               THEN COALESCE(BCMD.amount, BCD.amount)*(ACD.amount/100) ELSE 0 END) as AgencyCommission
           FROM BillingCash BC WITH (NOLOCK)
+          INNER JOIN dbo.vUsers U WITH (NOLOCK)
+              ON U.users_id = BC.users_id
           INNER JOIN BillingCashDetail BCD WITH (NOLOCK)
             ON BCD.policy_id = BC.policy_id
               AND BCD.billingcash_num = BC.billingcash_num
@@ -46,6 +52,8 @@ view: dt_cash_and_fees {
               AND PIM.policy_id >=-1
           INNER JOIN Version V WITH (NOLOCK)
             ON V.version_id = PIM.version_id
+          INNER JOIN LOB LOB WITH (NOLOCK)
+              ON LOB.lob_id = V.lob_id
           INNER JOIN Agency A
             ON A.Agency_id = PIM.Agency_id
           LEFT OUTER JOIN AgencyCommission AC
@@ -70,12 +78,14 @@ view: dt_cash_and_fees {
             ON N.name_id = PNL.name_id
           WHERE PIM.Policy_id <> 286372
           group by
+          pim.policy,
           CAST(BC.added_date as date),
           --CAST(LEFT(DATENAME(month, COALESCE(BCD.added_date, BC.added_date)), 3) as varchar(3)) + ' ' +
           --CAST(YEAR(COALESCE(BCD.added_date, BC.added_date)) as varchar(4)),
           V.company_id,
           V.State_id,
           V.Lob_id,
+          LOB.Lobname,
           A.Agency_id,
           A.agencygroup_id,
           COALESCE(BCCT.dscr, BCDT.dscr),
@@ -84,7 +94,8 @@ view: dt_cash_and_fees {
           pim.eff_date,
           ISNULL(billingchargetypecategory_id,5),
           ISNULL(BCIC.dscr, 'Other'),
-          ISNULL(BCIS.dscr, 'UnKnown')
+          ISNULL(BCIS.dscr, 'UnKnown'),
+          U.display_name + ' - ' + U.login_name
  ;;
     }
 
@@ -122,6 +133,11 @@ view: dt_cash_and_fees {
       sql: ${TABLE}.Lob_id ;;
     }
 
+  dimension: lob_name {
+    label: "LOB"
+    type: string
+    sql: ${TABLE}.Lobname ;;
+  }
     dimension: agency_id {
       type: number
       hidden: yes
@@ -147,6 +163,7 @@ view: dt_cash_and_fees {
     }
 
     dimension: eff_date {
+      label: "Policy Eff Date"
       type: date
       hidden: yes
       sql: ${TABLE}.eff_date ;;
@@ -165,6 +182,22 @@ view: dt_cash_and_fees {
       sql: ${TABLE}.CashSource ;;
 
     }
+
+  dimension: policy {
+    label: "Policy Number"
+    type: string
+    hidden: yes
+    sql: ${TABLE}.Policy ;;
+
+  }
+
+  dimension: login_name {
+    label: "Login name"
+    type: string
+    hidden: yes
+    sql: ${TABLE}.login_name ;;
+
+  }
 
     dimension: cash_detail_dscr {
       type: string
@@ -249,8 +282,19 @@ view: dt_cash_and_fees {
       sql: ${TABLE}.AgencyCommission;;
     }
      measure: amount {
+      label: " Fee and Premium Amount"
       type: sum
       sql: ${TABLE}.amount ;;
+      drill_fields: [detail*]
+    }
+
+#   -- Hiding this because need to work on when there is a premium credit.  FYI Policy_id 973336
+    measure: pay_amount {
+      label: " Payment Amount"
+      type: sum
+      hidden: yes
+      sql: ${TABLE}.pay_amount ;;
+      drill_fields: [detail*]
     }
 
 
@@ -262,16 +306,12 @@ view: dt_cash_and_fees {
     }
     set: detail {
       fields: [
+        policy,
         trans_date_time,
-        company_id,
-        state_id,
-        lob_id,
-        agency_id,
-        agencygroup_id,
-        policy_id,
-        policyimage_num,
+        lob_name,
         eff_date,
         cash_detail_dscr,
+        login_name,
         amount
       ]
     }
