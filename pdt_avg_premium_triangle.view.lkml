@@ -70,7 +70,7 @@ view: pdt_avg_premium_triangle {
             AND x.Transmonth = EOP.[year] * 100 + EOP.[month]
             AND x.renewal_ver = eop.renewal_ver
             AND x.coveragecode= cc.coveragecode
-        WHERE EOP.[year] * 100 + EOP.[month] between YEAR(EOP.Eff_Date) * 100 + MONTH(EOP.Eff_Date) and  YEAR(EOP.Exp_Date) * 100 + MONTH(EOP.Exp_Date)
+        --WHERE EOP.[year] * 100 + EOP.[month] between YEAR(EOP.Eff_Date) * 100 + MONTH(EOP.Eff_Date) and  YEAR(EOP.Exp_Date) * 100 + MONTH(EOP.Exp_Date)
         GROUP BY
           EOP.[year] * 100 + EOP.[month],
           EOP.policy,
@@ -124,6 +124,12 @@ view: pdt_avg_premium_triangle {
         label: "Policy Count"
         type: count_distinct
         sql: ${TABLE}.policy ;;
+    }
+
+    dimension: primay_key {
+      type: string
+      hidden: yes
+      sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coverage, ' ', ${TABLE}.transmonth) ;;
     }
 
     dimension: trans_month {
