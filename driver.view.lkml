@@ -124,7 +124,6 @@ view: driver {
   }
 
   dimension: agency_issued_sr22 {
-    hidden: yes
     type: string
     sql: ${TABLE}.agency_issued_sr22 ;;
   }
