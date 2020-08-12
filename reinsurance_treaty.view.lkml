@@ -1,10 +1,14 @@
 view: reinsurance_treaty {
     derived_table: {
-      sql: Select 1 as ID, 1 as treatynumber, 'Georgia 5/1/2019' as treatyname, '2019-05-01 00:00:00' as EffectiveDate, '2020-04-30 23:59:59' as ExpirationDate
+      sql: Select 1 as ID, 1 as treatynumber, 'Georgia 5/1/2019' as treatyname, 1 as treatylob, '2019-05-01 00:00:00' as EffectiveDate, '2020-04-30 23:59:59' as ExpirationDate
               UNION ALL
-              Select 2 as ID, 2 as treatynumber, 'Georgia 5/1/2020' as treatyname, '2020-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
+              Select 2 as ID, 1 as treatynumber, 'Georgia 5/1/2019' as treatyname, 2 as treatylob, '2019-05-01 00:00:00' as EffectiveDate, '2020-04-30 23:59:59' as ExpirationDate
               UNION ALL
-              Select 3 as ID, 1 as treatynumber, 'Alabama 6/1/2020' as treatyname, '2020-06-01 00:00:00' as EffectiveDate, '2099-05-31 23:59:59' as ExpirationDate
+              Select 3 as ID, 2 as treatynumber, 'Georgia 5/1/2020' as treatyname, 1 as treatylob, '2020-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
+              UNION ALL
+              Select 4 as ID, 2 as treatynumber, 'Georgia 5/1/2020' as treatyname, 2 as treatylob, '2020-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
+              UNION ALL
+              Select 5 as ID, 1 as treatynumber, 'Alabama 6/1/2020' as treatyname, 3 as treatylob, '2020-06-01 00:00:00' as EffectiveDate, '2099-05-31 23:59:59' as ExpirationDate
 
                ;;
     }
@@ -28,6 +32,11 @@ view: reinsurance_treaty {
       label: "Treaty Name"
       type: string
       sql: CONCAT(${TABLE}.treatyname, ' (', ${TABLE}.treatynumber, ')') ;;
+    }
+
+    dimension: treatylob {
+      hidden: yes
+      sql: ${TABLE}.treatylob ;;
     }
 
     dimension: effective_date {

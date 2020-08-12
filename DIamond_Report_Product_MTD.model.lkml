@@ -167,7 +167,8 @@ explore: dt_premiums {
       type:  left_outer
       relationship: one_to_many
       sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} AND
-        ${reinsurance_treaty.expiration_date};;
+                                        ${reinsurance_treaty.expiration_date}
+              AND ${reinsurance_treaty.treatylob} = ${policy_image.version_id} ;;
 
     }
 
