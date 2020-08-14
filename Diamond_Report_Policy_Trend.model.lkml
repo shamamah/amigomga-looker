@@ -53,3 +53,16 @@ explore: dt_policy_pif {
     relationship: one_to_many
   }
 }
+connection: "c76-reporting"
+
+include: "/views/*.view.lkml"
+
+explore: dt_retention_policy_by_agent {
+  group_label: "Diamond Analytics (REPORT)"
+  label: "Retention"
+  view_label: "Retention"
+  access_filter: {
+    field: code
+    user_attribute: agency_code
+  }
+}

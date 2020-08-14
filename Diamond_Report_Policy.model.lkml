@@ -252,16 +252,3 @@ explore: policy {
     sql_on: ${claim_control.claimcontrol_id} = ${dt_summarized_claim_level_financials.claimcontrol_id} ;;
   }
 }
-connection: "c76-reporting"
-
-include: "/views/*.view.lkml"
-
-explore: dt_retention_policy_by_agent {
-  group_label: "Diamond Analytics (REPORT)"
-  label: "Retention"
-  view_label: "Retention"
-  access_filter: {
-    field: code
-    user_attribute: agency_code
-  }
-}
