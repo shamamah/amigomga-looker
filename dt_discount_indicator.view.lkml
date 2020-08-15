@@ -21,12 +21,18 @@ view: dt_discount_indicator {
                 and ca.policyimage_num = pim.policyimage_num
                 and ca.dscr = pim.dscr
          ;;
-
+              sql_trigger_value: Select max(added_date) from CoverageAdditionalInfo ;;
+              indexes: ["policy_id"]
       }
         measure: count {
           type: count
         }
 
+        dimension: primary_key  {
+          type: string
+          primary_key: yes
+          sql: CONCAT(${policy_id}, ' ', ${policyimage_num}, ' ', ${discount_type}) ;;
+        }
         dimension: policy_id {
           type: number
           hidden: yes
