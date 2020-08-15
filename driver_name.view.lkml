@@ -126,7 +126,7 @@ view: driver_name {
     sql: ${TABLE}.dln ;;
   }
 
-  dimension_group: dln {
+  dimension_group: dln_date {
     hidden: yes
     type: time
     timeframes: [
@@ -145,6 +145,12 @@ view: driver_name {
     hidden: yes
     type: number
     sql: ${TABLE}.dlstate_id ;;
+  }
+
+  dimension: fdl {
+    label: "FDL/USDL"
+    type: string
+    sql: CASE WHEN ${TABLE}.dlstate_id = 310 THEN 'FDL' ELSE 'USDL' END ;;
   }
 
   dimension: doing_business_as {

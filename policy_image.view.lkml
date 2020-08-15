@@ -196,6 +196,7 @@ view: policy_image {
     drill_fields: [policyimage_drill*]
   }
 
+
   measure: sum_premium_chg_written {
     label: "Prem-Change in Written"
     type: sum

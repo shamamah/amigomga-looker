@@ -45,6 +45,20 @@ explore: dt_premiums {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: dt_quote_source {
+    view_label: "Policy"
+    type: inner
+    sql_on: ${policy_image.policy_id} = ${dt_quote_source.policy_id} ;;
+    relationship: one_to_one
+  }
+
+  join: dt_coverage_liab_phys {
+    view_label: "Coverage"
+    type: inner
+    relationship: many_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_coverage_liab_phys.policy_id}
+      AND ${policy_image.policyimage_num} = ${dt_coverage_liab_phys.policyimage_num};;
+  }
 
   join: dt_total_discount_percent {
     view_label: "Policy"
@@ -94,7 +108,7 @@ explore: dt_premiums {
     join: driver {
       view_label: "Driver"
       type: inner
-      fields: []
+      fields: [driver.agency_issued_sr22]
       relationship: one_to_one
       sql_on: ${vehicle.policy_id} = ${driver.policy_id} AND
           ${driver.policyimage_num} = ${vehicle.policyimage_num} AND
@@ -141,6 +155,7 @@ explore: dt_premiums {
       relationship: one_to_one
       sql_on: ${dt_premiums.coveragecode_id} = ${coverage_code.coveragecode_id};;
     }
+
 
     join: dt_discount_indicator {
       view_label: "Discount"
