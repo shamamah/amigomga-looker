@@ -1,6 +1,6 @@
 view: pdt_avg_premium_triangle {
   derived_table: {
-      sql: SELECT
+    sql: SELECT
         EOP.TransMonth,
         EOP.policy,
         EffMonth,
@@ -116,8 +116,8 @@ view: pdt_avg_premium_triangle {
         LOB.lobname,
         RunningTotal,
         EOP.Eff_date ;;
-#       sql_trigger_value: SELECT MAX([year] * 100 + [month]) FROM EOPMonthlyPremiums;;
-
+      sql_trigger_value: SELECT MAX([year] * 100 + [month]) FROM EOPMonthlyPremiums;;
+      indexes: ["policy", "transmonth", "renewal_ver", "coverage"]
   }
 
     measure: unique_policy {

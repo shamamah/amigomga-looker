@@ -17,6 +17,7 @@ view: dt_claimcount_mgmt {
         ClosedType,
         FirstClose,
         FirstOpen,
+        ActivityAge,
         Outstanding,
         policy,
         eff_date,
@@ -36,18 +37,19 @@ view: dt_claimcount_mgmt {
                 cc.claimcontrol_id,
                 CASE WHEN CFA.claimactivitycode_id = 2  THEN 'Closed'
                         ELSE 'Open' END as ActionType,
-        CASE WHEN CFA.claimactivitycode_id = 2 THEN
-            CASE WHEN z.claimcontrol_id is NULL THEN 'CWOP'
-                ELSE 'CWP' END
-        END as ClosedType,
-        CASE WHEN CFA.claimactivitycode_id = 2 and cd.claimcontrol_id is not NULL THEN 1
-            ELSE 0 END AS FirstClose,
-        CASE WHEN CFA.claimactivitycode_id = 1 and od.claimcontrol_id is not NULL THEN 1
-            ELSE 0 END AS FirstOpen,
-        CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
-                policy,
-                eff_date,
-                CASE WHEN z.claimcontrol_id is not NULL THEN 1 ELSE 0 END as paid
+                CASE WHEN CFA.claimactivitycode_id = 2 THEN
+                    CASE WHEN z.claimcontrol_id is NULL THEN 'CWOP'
+                        ELSE 'CWP' END
+                END as ClosedType,
+                CASE WHEN CFA.claimactivitycode_id = 2 and cd.claimcontrol_id is not NULL THEN 1
+                    ELSE 0 END AS FirstClose,
+                CASE WHEN CFA.claimactivitycode_id = 1 and od.claimcontrol_id is not NULL THEN 1
+                    ELSE 0 END AS FirstOpen,
+                DATEDIFF(d, cc.Reported_Date, cfa.added_date) as ActivityAge,
+                CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
+                        policy,
+                        eff_date,
+                0 as paid
                 FROM ClaimFeature ClmFeat WITH(NOLOCK)
                 INNER JOIN ClaimControl CC WITH(NOLOCK)
                   ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
@@ -121,6 +123,7 @@ view: dt_claimcount_mgmt {
                 NULL,
                 0,
                 0,
+                0,
                 0 as Outstanding,
                 policy,
                 eff_date,
@@ -132,7 +135,61 @@ view: dt_claimcount_mgmt {
                   ON CC.policy_id = PolImg.policy_id
                     AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
-                  ON V.version_id = PolImg.version_id) a;;
+                  ON V.version_id = PolImg.version_id
+
+      UNION ALL
+
+      Select
+                CAST(cf.added_date as Datetime) ProcessingDate,
+                cf.added_date as Reported_Date,
+                Company_id,
+                LOB_id,
+                State_id,
+                ClaimControl.claim_number,
+                PolicyImage.policy_id,
+                PolicyImage.Policyimage_num,
+                ClmFeat.coverage_dscr + ' ' + ClmFeat.subcoverage_dscr AS FeatDscr,
+                ClmFeat.claimfeature_num,
+                ClmFeat.Claimant_num,
+                ClaimControl.claimcontrol_id,
+                'Payment' as ActionType,
+                NULL,
+                0,
+                0,
+                0,
+                0 as Outstanding,
+                policy,
+                PolicyImage.eff_date,
+                indemnity_paid as paid
+               FROM ProductionBackup.dbo.ClaimFeatureEOD CFE WITH(NOLOCK)
+        INNER JOIN ProductionBackup.dbo.ClaimFeature ClmFeat WITH(NOLOCK)
+          ON CFE.claimcontrol_id = ClmFeat.claimcontrol_id
+            AND  CFE.claimant_num = ClmFeat.claimant_num
+            AND CFE.claimfeature_num = ClmFeat.claimfeature_num
+        INNER JOIN ProductionBackup.dbo.ClaimCoverage WITH(NOLOCK)
+          ON ClmFeat.claimcontrol_id  = ClaimCoverage.claimcontrol_id
+            AND ClmFeat.claimexposure_id = ClaimCoverage.claimexposure_id
+            AND ClmFeat.claimsubexposure_num = ClaimCoverage.claimsubexposure_num
+            AND ClmFeat.claimcoverage_num = ClaimCoverage.claimcoverage_num
+        INNER JOIN ProductionBackup.dbo.ClaimControl WITH(NOLOCK)
+          ON ClmFeat.claimcontrol_id = ClaimControl.claimcontrol_id
+        INNER JOIN ProductionBackup.dbo.PolicyImage WITH(NOLOCK)
+          ON ClaimControl.policy_id = PolicyImage.policy_id
+            AND ClaimControl.policyimage_num = PolicyImage.policyimage_num
+        LEFT OUTER JOIN ProductionBackup.dbo.PackagePart PP WITH (NOLOCK)
+          ON ClaimControl.policy_id = PP.policy_id
+            AND ClaimControl.policyimage_num = PP.policyimage_num
+            AND ClaimControl.packagepart_num = PP.packagepart_num
+        INNER JOIN ProductionBackup.dbo.CoverageCodeVersion WITH(NOLOCK)
+          ON ClaimCoverage.coveragecode_id = CoverageCodeVersion.coveragecode_id
+            AND CoverageCodeVersion.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
+        INNER JOIN ProductionBackup.dbo.ClaimFinancials CF WITH(NOLOCK)
+          ON CFE.claimcontrol_id = CF.claimcontrol_id
+          AND CFE.claimfinancials_num = CF.claimfinancials_num
+        INNER JOIN ProductionBackup.dbo.[Version] V WITH(NOLOCK)
+          ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
+        WHERE CFE.claimeoplevel_id = 3
+        and cf.indemnity_paid <> 0) a;;
     }
 
     measure: count {
@@ -165,14 +222,14 @@ view: dt_claimcount_mgmt {
     }
 
     measure: closed_count {
-      label: "Closed Pay"
+      label: "First Closed Pay"
       type: count
       filters: [action_type: "Closed", closed_type: "CWP", first_close: "1"]
       drill_fields: [detail*]
     }
 
     measure: closed_count1 {
-      label: "Closed w/o Pay"
+      label: "First Closed w/o Pay"
       type: count
       filters: [action_type: "Closed", closed_type: "CWOP", first_close: "1"]
       drill_fields: [detail*]
@@ -186,7 +243,7 @@ view: dt_claimcount_mgmt {
     }
 
     measure: open_count {
-      label: "Opened"
+      label: "First Open"
       type: count
       filters: [action_type: "Open", first_open: "1"]
       drill_fields: [detail*]
@@ -273,6 +330,19 @@ view: dt_claimcount_mgmt {
       type: number
       hidden: yes
       sql: ${TABLE}.claimcontrol_id ;;
+    }
+
+    dimension: activity_age {
+      type: number
+      sql: ${TABLE}.ActivityAge;;
+    }
+
+    dimension: closed_bucket {
+      type: tier
+      style: integer
+      tiers: [31, 61, 91, 121, 151, 181]
+      sql: ${activity_age} ;;
+      drill_fields: [detail*]
     }
 
     dimension: claim_age {

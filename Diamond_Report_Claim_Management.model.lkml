@@ -40,11 +40,12 @@ explore: claim_feature {
 #   }
 
     join: policy_image {
+      view_label: "Claim Detail"
       type: inner
       sql_on: ${claim_control.policy_id} = ${policy_image.policy_id}
         AND ${claim_control.policyimage_num} = ${policy_image.policyimage_num};;
       relationship: one_to_many
-      fields: []
+      fields: [eff_month, eff_quarter, eff_year]
     }
 
     join: policy_image_name_link {
@@ -172,6 +173,13 @@ explore: claim_feature {
 #           dt_claimcount.outstanding]
       }
 
+  join: dt_calendar {
+    view_label: "Time"
+    type: left_outer
+    sql_on:  ${dt_claimcount_mgmt.processingdate_date} = ${dt_calendar.dt_date_date};;
+    relationship: one_to_many
+}
+
   join: claim_transaction {
     type:  left_outer
     sql_on: ${claim_feature.claimcontrol_id} = ${claim_transaction.claimcontrol_id}
@@ -182,10 +190,12 @@ explore: claim_feature {
   }
 
   join: v_claimtransaction_adjust2 {
-    type: inner
+    type: left_outer
     view_label: "Claim Detail"
-    sql_on: ${claim_transaction.compound_primary_key}=${v_claimtransaction_adjust2.compound_primary_key} ;;
-    relationship: one_to_one
+    sql_on: ${claim_transaction.compound_primary_key}=${v_claimtransaction_adjust2.compound_primary_key}
+          AND ${v_claimtransaction_adjust2.added_date} = ${dt_calendar.dt_date_date};;
+#           AND ${v_claimtransaction_adjust2.claimtransactionstatus_id} in (1,4,7);;
+    relationship: one_to_many
     fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage]
   }
 

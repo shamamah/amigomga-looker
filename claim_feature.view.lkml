@@ -3,7 +3,8 @@ view: claim_feature {
       ;;
 
   measure: count {
-    type: count
+    type: count_distinct
+    sql: CONCAT(${TABLE}.claimcontrol_id, ' ', ${TABLE}.claimant_num, ' ', ${TABLE}.claimfeature_num) ;;
     drill_fields: [detail*]
   }
 
@@ -25,6 +26,11 @@ view: claim_feature {
     sql: ${TABLE}.claimfeature_num ;;
   }
 
+  dimension: primary_key {
+    type:  string
+    primary_key: yes
+    sql:  CONCAT(${TABLE}.claimcontrol_id, ' ', ${TABLE}.claimant_num, ' ', ${TABLE}.claimfeature_num) ;;
+  }
   dimension: claimexposure_id {
     type: number
     hidden: yes
@@ -166,7 +172,6 @@ view: claim_feature {
 
   dimension: claimfeaturestatus_id {
     type: number
-    hidden: yes
     sql: ${TABLE}.claimfeaturestatus_id ;;
   }
 

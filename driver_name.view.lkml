@@ -150,7 +150,9 @@ view: driver_name {
   dimension: fdl {
     label: "FDL/USDL"
     type: string
-    sql: CASE WHEN ${TABLE}.dlstate_id = 310 THEN 'FDL' ELSE 'USDL' END ;;
+    sql: CASE WHEN ${TABLE}.dlstate_id = 310 or ${TABLE}.dln = ''
+                  or (${TABLE}.dlstate_id = 11 and LEFT(dln, 1) <> '0')
+                  THEN 'FDL' ELSE 'USDL' END ;;
   }
 
   dimension: doing_business_as {
