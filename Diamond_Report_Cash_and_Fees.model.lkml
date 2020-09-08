@@ -19,13 +19,38 @@ explore: dt_cash_and_fees {
         AND ${company_state_lob.state_id} = ${dt_cash_and_fees.state_id};;
     }
 
+  join: dt_policyimage_num_unique {
+    type: inner
+    sql_on: ${dt_cash_and_fees.policy_id} = ${dt_policyimage_num_unique.policy_id}
+          AND ${dt_cash_and_fees.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver} ;;
+    relationship: one_to_many
+  }
+
   join: policy_image {
     view_label: "Policy"
     type: inner
-    fields: []
+    fields: [policy_image.teff_date, policy_image.texp_date, policy_image.transtype_id, policy_image.policystatuscode_id]
+    relationship: one_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+  }
+
+  join: coverage {
+    view_label: "Coverage"
+    type: inner
+    fields: [checkbox]
     relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_cash_and_fees.policy_id}
-      AND ${policy_image.policyimage_num} = ${dt_cash_and_fees.policyimage_num};;
+      AND ${policy_image.policyimage_num} = ${dt_cash_and_fees.policyimage_num}
+      AND ${coverage.detailstatuscode_id} = 1;;
+  }
+
+  join: coverage_code {
+    view_label: "Coverage"
+    type: inner
+    sql_on: ${coverage.coveragecode_id} = ${coverage_code.coveragecode_id} ;;
+    fields: [coverage_code.dscr]
+    relationship: one_to_many
   }
 
 join: reinsurance_treaty {

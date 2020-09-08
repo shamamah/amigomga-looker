@@ -173,12 +173,6 @@ explore: claim_feature {
 #           dt_claimcount.outstanding]
       }
 
-  join: dt_calendar {
-    view_label: "Time"
-    type: left_outer
-    sql_on:  ${dt_claimcount_mgmt.processingdate_date} = ${dt_calendar.dt_date_date};;
-    relationship: one_to_many
-}
 
   join: claim_transaction {
     type:  left_outer
@@ -192,9 +186,11 @@ explore: claim_feature {
   join: v_claimtransaction_adjust2 {
     type: left_outer
     view_label: "Claim Detail"
-    sql_on: ${claim_transaction.compound_primary_key}=${v_claimtransaction_adjust2.compound_primary_key}
-          AND ${v_claimtransaction_adjust2.added_date} = ${dt_calendar.dt_date_date};;
-#           AND ${v_claimtransaction_adjust2.claimtransactionstatus_id} in (1,4,7);;
+    sql_on: ${claim_transaction.claimcontrol_id} = ${v_claimtransaction_adjust2.claimcontrol_id}
+          AND ${claim_transaction.claimant_num} = ${v_claimtransaction_adjust2.claimant_num}
+          AND ${claim_transaction.claimfeature_num} = ${v_claimtransaction_adjust2.claimfeature_num}
+          AND ${claim_transaction.claimtransaction_num} = ${v_claimtransaction_adjust2.claimtransaction_num}
+          AND ${v_claimtransaction_adjust2.claimtransactionstatus_id} in (1,4,7);;
     relationship: one_to_many
     fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage]
   }

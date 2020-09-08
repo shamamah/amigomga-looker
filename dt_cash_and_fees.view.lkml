@@ -12,6 +12,7 @@ view: dt_cash_and_fees {
           pim.policy,
           pim.policy_id,
           pim.policyimage_num,
+          pim.renewal_ver,
           pim.eff_date,
           ISNULL(billingchargetypecategory_id,5) as FeeInd,
           ISNULL(BCIC.dscr, 'Other') as PaymentType,
@@ -91,6 +92,7 @@ view: dt_cash_and_fees {
           COALESCE(BCCT.dscr, BCDT.dscr),
           pim.policy_id,
           pim.policyimage_num,
+          pim.renewal_ver,
           pim.eff_date,
           ISNULL(billingchargetypecategory_id,5),
           ISNULL(BCIC.dscr, 'Other'),
@@ -160,6 +162,12 @@ view: dt_cash_and_fees {
       type: number
       hidden: yes
       sql: ${TABLE}.policyimage_num ;;
+    }
+
+    dimension: renewal_ver {
+      type: number
+      hidden: yes
+      sql: ${TABLE}.renewal_ver ;;
     }
 
     dimension: eff_date {

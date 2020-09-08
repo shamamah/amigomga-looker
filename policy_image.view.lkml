@@ -77,7 +77,6 @@ view: policy_image {
   }
 
   dimension: transtype_id {
-    hidden: yes
     type: number
     sql: ${TABLE}.transtype_id ;;
   }

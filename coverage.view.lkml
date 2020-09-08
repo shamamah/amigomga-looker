@@ -47,7 +47,6 @@ view: coverage {
   }
 
   dimension: checkbox {
-    hidden: yes
     type: string
     sql: ${TABLE}.checkbox ;;
   }
@@ -95,7 +94,6 @@ view: coverage {
   }
 
   dimension: dscr {
-    hidden: yes
     type: string
     sql: ${TABLE}.dscr ;;
   }

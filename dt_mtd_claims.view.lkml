@@ -98,6 +98,11 @@ view: dt_mtd_claims {
     sql: ${TABLE}.month ;;
   }
 
+  dimension: yr_mnth {
+    type: number
+    sql: ${year} * 100 + ${month};;
+  }
+
     dimension: state_id {
       type: number
       hidden: yes

@@ -161,7 +161,7 @@ view: dt_policy_pif {
     dimension_group: trans_date {
       label: "Transaction Time Increment"
       type: time
-      timeframes: [date, week, month, year]
+      timeframes: [date, month, quarter, year, week]
       sql: ${TABLE}.TransDate ;;
     }
 
@@ -196,6 +196,7 @@ view: dt_policy_pif {
     }
 
     dimension: tran_exp_date {
+      label: "Expiration Date of Transaction"
       type: date
       sql: ${TABLE}.TransExpDate ;;
     }

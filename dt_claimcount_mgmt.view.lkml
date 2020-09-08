@@ -263,6 +263,11 @@ view: dt_claimcount_mgmt {
       sql: ${TABLE}.id ;;
     }
 
+    dimension: yr_mnth {
+      type: number
+      sql: YEAR(${processingdate_date}) * 100 + MONTH(${processingdate_date});;
+    }
+
     dimension_group: processingdate {
       type: time
       timeframes: [date,week,month,quarter,year]
