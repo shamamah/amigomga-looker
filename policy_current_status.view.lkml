@@ -9,7 +9,7 @@ view: policy_current_status {
   }
 
   dimension: description {
-    label: "Status"
+    label: "Policy Status"
     type: string
     sql: ${TABLE}.description ;;
   }

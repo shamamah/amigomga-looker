@@ -45,6 +45,12 @@ explore: dt_premiums {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: policy_current_status {
+    view_label: "Policy"
+    type:  inner
+    relationship: one_to_many
+    sql_on: ${policy_current_status.policycurrentstatus_id} = ${policy_image.policystatuscode_id};;
+  }
   join: dt_quote_source {
     view_label: "Policy"
     type: inner
@@ -162,7 +168,14 @@ explore: dt_premiums {
       type: full_outer
       relationship: many_to_one
       sql_on: ${dt_discount_indicator.policy_id} = ${dt_policyimage_num_unique.policy_id}
-        AND ${dt_discount_indicator.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+        AND ${dt_discount_indicator.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
+    }
+
+    join: dt_proof_of_prior {
+      view_label:  "Proof of Prior"
+      type: full_outer
+      relationship: one_to_one
+      sql_on: ${dt_proof_of_prior.policy_id} = ${dt_policyimage_num_unique.policy_id};;
     }
 
     join: dt_mtd_claims {

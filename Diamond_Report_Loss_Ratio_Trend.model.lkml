@@ -114,7 +114,7 @@ explore: dt_premiums_jp {
     type: full_outer
     relationship: many_to_one
     sql_on: ${dt_discount_indicator.policy_id} = ${dt_policyimage_num_unique.policy_id}
-      AND ${dt_discount_indicator.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+      AND ${dt_discount_indicator.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
 
   join: dt_claims_jp {
