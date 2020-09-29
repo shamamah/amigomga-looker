@@ -3,6 +3,7 @@ view: dt_mtd_claims {
       sql: SELECT
           CFE.Year,
           CFE.Month,
+          ClaimFault_id,
           V.company_id,
           V.state_id,
           V.lob_id,
@@ -56,6 +57,7 @@ view: dt_mtd_claims {
         GROUP BY
           CFE.Year,
           CFE.Month,
+          ClaimFault_id,
           V.company_id,
           V.state_id,
           V.lob_id,
@@ -211,6 +213,11 @@ view: dt_mtd_claims {
       type: string
       hidden: yes
       sql: ${TABLE}.eff_date ;;
+    }
+
+    dimension: claim_fault {
+      type: number
+      sql: ${TABLE}.claimFault_id ;;
     }
 
     dimension: claim_number {
