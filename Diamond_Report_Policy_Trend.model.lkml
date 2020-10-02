@@ -15,7 +15,8 @@ explore: dt_policy_pif {
   join: policy_pif_trans_lkup {
     view_label: "Policy"
     type: inner
-    sql_on: ${policy_pif_trans_lkup.transtype_sht} = ${dt_policy_pif.trans_type} ;;
+    sql_on: ${policy_pif_trans_lkup.transtype_sht} = ${dt_policy_pif.trans_type}
+          ;;
     relationship: one_to_many
   }
 
@@ -29,7 +30,8 @@ explore: dt_policy_pif {
   join: dt_policy_agency {
     view_label: "Agency"
     type: inner
-    sql_on: ${dt_policyimage_num_unique.policy_id} = ${dt_policy_agency.policy_id} ;;
+    sql_on: ${dt_policy_agency.policy_id} = ${dt_policyimage_num_unique.policy_id}
+          AND ${dt_policy_agency.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
     relationship: one_to_many
   }
 

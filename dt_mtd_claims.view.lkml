@@ -3,7 +3,7 @@ view: dt_mtd_claims {
       sql: SELECT
           CFE.Year,
           CFE.Month,
-          ClaimFault_id,
+          clf.dscr as at_fault,
           V.company_id,
           V.state_id,
           V.lob_id,
@@ -34,6 +34,7 @@ view: dt_mtd_claims {
             AND ClaimFeature.claimcoverage_num = ClaimCoverage.claimcoverage_num
         INNER JOIN ClaimControl WITH(NOLOCK)
           ON ClaimFeature.claimcontrol_id = ClaimControl.claimcontrol_id
+        INNER JOIN Claimfault clf ON clf.Claimfault_id = claimcontrol.claimfault_id
         LEFT JOIN ClaimControlVehicle CCV
           ON ClaimControl.ClaimControl_id = CCV.ClaimControl_id
           AND Vehicle_num <> 0
@@ -57,7 +58,7 @@ view: dt_mtd_claims {
         GROUP BY
           CFE.Year,
           CFE.Month,
-          ClaimFault_id,
+          clf.dscr,
           V.company_id,
           V.state_id,
           V.lob_id,
@@ -216,8 +217,9 @@ view: dt_mtd_claims {
     }
 
     dimension: claim_fault {
-      type: number
-      sql: ${TABLE}.claimFault_id ;;
+      label: "At-Fault"
+      type: string
+      sql: ${TABLE}.at_fault ;;
     }
 
     dimension: claim_number {
