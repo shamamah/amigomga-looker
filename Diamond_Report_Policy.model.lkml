@@ -9,6 +9,7 @@ week_start_day: sunday
 explore: policy {
   group_label: "Diamond Analytics (REPORT)"
   label: "Policy"
+  hidden: yes
   view_label: "Policy"
 
   #Exclude records without policy number

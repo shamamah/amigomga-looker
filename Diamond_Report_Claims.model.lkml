@@ -9,6 +9,7 @@ week_start_day: sunday
 explore: claim_control {
   group_label: "Diamond Analytics (REPORT)"
   label: "Claims"
+  hidden: yes
   view_label: "Claim"
 
   #Exclude records without claim number
