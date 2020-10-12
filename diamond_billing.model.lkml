@@ -9,6 +9,7 @@ week_start_day: sunday
 explore: billing_cash {
   group_label: "Diamond Analytics (PROD)"
   label: "Billing"
+  hidden:  yes
   view_label: "Billing"
 
   join: policy {
