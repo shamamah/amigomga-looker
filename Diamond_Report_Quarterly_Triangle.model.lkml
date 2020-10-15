@@ -8,6 +8,7 @@ explore: eop_premium_triangle_quarter {
   label: "Quarterly Triangles"
   view_label: "Premium"
 
+
 join: eop_claims_triangle_quarter {
   view_label: "Loss"
   type: left_outer
@@ -17,7 +18,10 @@ join: eop_claims_triangle_quarter {
          AND ${eop_claims_triangle_quarter.lag_year_quarter} = ${eop_premium_triangle_quarter.lag_year_quarter}
         AND ${eop_claims_triangle_quarter.coveragecode_id} = ${eop_premium_triangle_quarter.coveragecode_id}
         AND ${eop_claims_triangle_quarter.lob_id} = ${eop_premium_triangle_quarter.lob_id}
-;;
+        AND ${eop_claims_triangle_quarter.treaty} = ${eop_premium_triangle_quarter.treaty}
+        AND ${eop_claims_triangle_quarter.new_renewal} = ${eop_premium_triangle_quarter.new_renewal};;
+#       AND ${eop_claims_triangle_quarter.liab_full} = ${eop_premium_triangle_quarter.liab_full}
+
 
 
 }

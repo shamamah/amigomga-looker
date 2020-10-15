@@ -1,108 +1,205 @@
 view: eop_premium_triangle_quarter {
-  sql_table_name: EOPMonthlyPremiums  ;;
+  derived_table: {
+
+    sql:  SELECT
+        CONCAT(year, CASE WHEN month in (1,2,3) THEN '1'
+                                        WHEN month in (4,5,6) THEN '2'
+                                        WHEN month in (7,8,9) THEN '3'
+                                        WHEN month in (10,11,12) THEN '4'
+                                        END) as w_quarter,
+        CAST('Q' + CAST(DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(1)) as varchar(2)) as QuarterID,
+        CONCAT(YEAR(xx.eff_date), CASE WHEN MONTH(xx.eff_date) in (1,2,3) THEN '1'
+                                        WHEN MONTH(xx.eff_date) in (4,5,6) THEN '2'
+                                        WHEN MONTH(xx.eff_date) in (7,8,9) THEN '3'
+                                        WHEN MONTH(xx.eff_date) in (10,11,12) THEN '4'
+                                        END) As Policy_Quarter,
+
+        company_id,
+        state_id,
+        xx.lob_id,
+        lobname,
+        coveragecode_id,
+        caption,
+ --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
+        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+        SUM(TotalEarnedPremium) as EarnedPremium,
+        SUM(TotalWrittenPremium) as WrittenPremium,
+    SUM(TotalUnearnedPremium) as UnearnedPremium
+        FROM (SELECT
+                EMP.YEAR,
+                EMP.Month,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium,
+        SUM(EMP.premium_unearned) AS TotalUnearnedPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
 
 
-  dimension: eop_primary {
+          UNION ALL
+
+          SELECT
+            YEAR(GETDATE()-1) as year,
+            MONTH(GETDATE()-1) as month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+ --           Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date,
+            SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+            SUM(EMP.premium_written_mtd) AS TotalWrittenPremium,
+      SUM(EMP.premium_unearned) AS TotalUnearnedPremium
+          FROM EOPPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN .CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          GROUP BY
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+  --          Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date) xx
+     INNER JOIN LOB l
+            ON l.lob_id = xx.lob_id
+       INNER JOIN Customer_Reports.dbo.Treaty t
+            ON t.lob_id = xx.lob_id
+            AND xx.eff_date between t.eff_date and t.exp_date
+      LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
+      JOIN ProductionBackup.dbo.Coverage c
+        ON c.policy_id = pim.policy_id
+        AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
+      JOIN ProductionBackup.dbo.coveragecode cc
+        on cc.coveragecode_id = c.coveragecode_id
+        and cc.coveragetype = 'PhysicalDamage'
+            GROUP by c.Policy_id, pim.renewal_ver
+            HAVING SUM(c.premium_fullterm) > 0) cc1
+              ON xx.policy_id = cc1.policy_id
+              AND xx.renewal_ver = cc1.renewal_ver
+
+      Group by
+            CONCAT(year, CASE WHEN month in (1,2,3) THEN '1'
+                                        WHEN month in (4,5,6) THEN '2'
+                                        WHEN month in (7,8,9) THEN '3'
+                                        WHEN month in (10,11,12) THEN '4'
+                                        END),
+      CAST('Q' + CAST(DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(1)) as varchar(2)),
+      CONCAT(YEAR(xx.eff_date), CASE WHEN MONTH(xx.eff_date) in (1,2,3) THEN '1'
+                                        WHEN MONTH(xx.eff_date) in (4,5,6) THEN '2'
+                                        WHEN MONTH(xx.eff_date) in (7,8,9) THEN '3'
+                                        WHEN MONTH(xx.eff_date) in (10,11,12) THEN '4'
+                                        END),
+
+        company_id,
+        state_id,
+        xx.lob_id,
+        lobname,
+        coveragecode_id,
+        caption,
+--        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
+        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
+ ;;
+  }
+
+
+  dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.unit_num, ' ',
-                        ${year}, ' ', ${month})  ;;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.Policy_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.treaty)
+    ;;
+    }
+
+  measure: total_earned_premium {
+    label: "Earned Premium"
+    type: sum
+    sql: ${TABLE}.earnedpremium ;;
 
   }
+
+  measure: total_written_premium {
+    label: "Written Premium"
+    type: sum
+    sql: ${TABLE}.writtenpremium ;;
+  }
+
+  measure: total_unearned_premium {
+    label: "Unearned Premium"
+    type: sum
+    sql: ${TABLE}.unearnedpremium ;;
+  }
+
+
+  # dimension: new_renewal {
+  #   label: "New vs. Renewal"
+  #   type: string
+  #   sql: ${TABLE}.NewRen;;
+  # }
 
   dimension: policy_year_quarter {
-    label: "Policy Year_QTR"
+    label: "_Policy Year_QTR"
     type:  string
-    sql: CONCAT(YEAR(${eff_date}), CASE WHEN MONTH(${eff_date}) in (1,2,3) THEN '1'
-                                        WHEN MONTH(${eff_date}) in (4,5,6) THEN '2'
-                                        WHEN MONTH(${eff_date}) in (7,8,9) THEN '3'
-                                        WHEN MONTH(${eff_date}) in (10,11,12) THEN '4'
-                                        END) ;;
-  }
-
-  dimension: trans_year_quarter {
-    label: "Trans Year_QTR"
-    type: string
-    hidden: yes
-    sql: CONCAT(${year}, CASE WHEN ${month} in (1,2,3) THEN '1'
-                                        WHEN ${month} in (4,5,6) THEN '2'
-                                        WHEN ${month} in (7,8,9) THEN '3'
-                                        WHEN ${month} in (10,11,12) THEN '4'
-                                        END) ;;
+    sql: ${TABLE}.Policy_Quarter;;
   }
 
   dimension: lag_year_quarter {
-    label: "Lag Year_QTR"
+    label: "_Lag Year_QTR"
     type: string
-    sql: CONCAT('Q', CAST(DATEDIFF(q, ${eff_date}, CAST(${year} as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(${month} as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(2)));;
+    sql: ${TABLE}.quarterID;;
   }
 
-  dimension: year {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.year ;;
-  }
-
-  dimension: month {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.month ;;
-  }
-
-  dimension: policy_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.policy_id ;;
-  }
-
-  dimension: policyimage_num {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.policyimage_num ;;
-  }
-
-  dimension: coverage_num {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.coverage_num ;;
-  }
-
-  dimension: coveragecode_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.coveragecode_id ;;
-  }
-
-  dimension: liab_phys {
+  dimension: trans_year_quarter {
+    label: "_Trans Year_QTR (YYYYQ)"
     type: string
-    hidden: yes
-    sql: ${TABLE}.coveragecode_id ;;
+    sql: ${TABLE}.w_quarter ;;
   }
+  # dimension: liab_full {
+  #   type: string
+  #   sql: ${TABLE}.LiabOnly_Full;;
 
-  dimension: version_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.version_id ;;
-  }
-
-  dimension: policy {
-    type: string
-    hidden: yes
-    sql: ${TABLE}.policy ;;
-  }
-
-  dimension: new_renewal {
-    label: "New vs. Renewal"
-    type: string
-    hidden: yes
-    sql: CASE WHEN ${TABLE}.renewal_ver=1 THEN 'New' ELSE 'Renewal' END ;;
-  }
-
-  dimension: renewal_ver {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.renewal_ver ;;
-  }
+  # }
 
   dimension: company_id {
     type: number
@@ -122,186 +219,33 @@ view: eop_premium_triangle_quarter {
     sql: ${TABLE}.lob_id ;;
   }
 
-  dimension: eff_date {
-    type: date
-    hidden: yes
-    sql: ${TABLE}.eff_date ;;
-  }
-
-  dimension: exp_date {
-    type: date
-    hidden: yes
-    sql: ${TABLE}.exp_date ;;
-  }
-
-  dimension: teff_date {
-    type: date
-    hidden: yes
-    sql: ${TABLE}.teff_date ;;
-  }
-
-  dimension: texp_date {
-    type: date
-    hidden: yes
-    sql: ${TABLE}.texp_date ;;
-  }
-
-  dimension_group: accounting_date {
-    type: time
-    hidden: yes
-    sql: ${TABLE}.accounting_date ;;
-  }
-
-  dimension: agency_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.agency_id ;;
-  }
-
-  dimension: majorperil_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.majorperil_id ;;
-  }
-
-  dimension: asl_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.asl_id ;;
-  }
-
-  dimension: typebureau_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.typebureau_id ;;
-  }
-
-  dimension: unit_num {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.unit_num ;;
-  }
-
-  dimension: num_days {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.num_days ;;
-  }
-
-  dimension: earn_rate {
+  dimension: lobname {
+    label: "Program Name (LOB)"
     type: string
-    hidden: yes
-    sql: ${TABLE}.earn_rate ;;
+    sql: ${TABLE}.lobname ;;
   }
 
-  measure: premium_fullterm {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_fullterm ;;
+  dimension: treaty {
+    label: "Treaty Name"
+    type: string
+    sql: ${TABLE}.Treaty ;;
   }
 
-  measure: premium_chg_fullterm {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_chg_fullterm ;;
+  dimension: new_renewal {
+    label: "New_Renew"
+    type: string
+    sql: ${TABLE}.NewRen ;;
   }
-
-  measure: premium_written_mtd {
-    label: "Written Premium"
-    type: sum
-    value_format_name: usd
-    sql: ${TABLE}.premium_written_mtd ;;
-  }
-
-  measure: premium_written_ytd {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_written_ytd ;;
-  }
-
-  measure: premium_earned_mtd {
-    label: "Earned Premium"
-    type: sum
-    value_format_name: usd
-    sql: ${TABLE}.premium_earned_mtd
-      ;;
-  }
-
-  measure: premium_earned_ytd {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_earned_ytd ;;
-  }
-
-  measure: premium_unearned {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_unearned ;;
-  }
-
-  measure: premium_unearned_mtd {
-    label: "Unearned Premium"
-    type: sum
-    value_format_name: usd
-    sql: ${TABLE}.premium_unearned_priormonth - ${TABLE}.premium_unearned ;;
-  }
-
-  measure: premium_unearned_ytd {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_unearned_prioryear - ${TABLE}.premium_unearned ;;
-  }
-
-  measure: premium_unearned_priormonth {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_unearned_priormonth ;;
-  }
-
-  measure: premium_unearned_prioryear {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_unearned_prioryear ;;
-  }
-
-  measure: premium_fullyearned {
-    type: sum
-    hidden: yes
-    value_format_name: usd
-    sql: ${TABLE}.premium_fullyearned ;;
-  }
-
-  dimension: added_date {
-    type: date
-    hidden: yes
-    sql: ${TABLE}.added_date ;;
-  }
-
-  dimension_group: pcadded_date {
-    type: time
-    hidden: yes
-    sql: ${TABLE}.pcadded_date ;;
-  }
-
-  dimension_group: last_modified_date {
-    type: time
-    hidden: yes
-    sql: ${TABLE}.last_modified_date ;;
-  }
-
-  dimension: year_month_key {
+  dimension: coveragecode_id {
     type: number
     hidden: yes
-    sql: ${TABLE}.year_month_key ;;
+    sql: ${TABLE}.coveragecode_id ;;
   }
 
+  dimension: caption {
+    label: "Coverage"
+    type: string
+    sql: ${TABLE}.caption ;;
+  }
 
 }

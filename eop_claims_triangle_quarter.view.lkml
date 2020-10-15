@@ -20,6 +20,9 @@ view: eop_claims_triangle_quarter {
           V.lob_id,
           CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END as coveragecode_id,
           CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END as caption,
+--          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
+          CASE WHEN policyimage.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+          Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
 --          PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
 --          PolicyImage.renewal_ver,
@@ -53,6 +56,17 @@ view: eop_claims_triangle_quarter {
         Left JOIN PolicyImage WITH(NOLOCK)
           ON ClaimControl.policy_id = PolicyImage.policy_id
             AND ClaimControl.policyimage_num = PolicyImage.policyimage_num
+        LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
+            JOIN ProductionBackup.dbo.Coverage c
+              ON c.policy_id = pim.policy_id
+              AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
+            JOIN ProductionBackup.dbo.coveragecode cc
+                on cc.coveragecode_id = c.coveragecode_id
+                and cc.coveragetype = 'PhysicalDamage'
+            GROUP by c.Policy_id, pim.renewal_ver
+            HAVING SUM(c.premium_fullterm) > 0) cc1
+              ON PolicyImage.policy_id = cc1.policy_id
+              AND PolicyImage.renewal_ver = cc1.renewal_ver
         LEFT OUTER JOIN PackagePart PP WITH (NOLOCK)
           ON ClaimControl.policy_id = PP.policy_id
             AND ClaimControl.policyimage_num = PP.policyimage_num
@@ -65,6 +79,9 @@ view: eop_claims_triangle_quarter {
           AND CFE.claimfinancials_num = CF.claimfinancials_num
         INNER JOIN [Version] V WITH(NOLOCK)
           ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
+      INNER JOIN Customer_Reports.dbo.Treaty t
+            ON t.lob_id = v.lob_id
+            AND PolicyImage.eff_date between t.eff_date and t.exp_date
         WHERE
           CFE.claimeoplevel_id = 3
         GROUP BY
@@ -85,7 +102,10 @@ view: eop_claims_triangle_quarter {
           V.state_id,
           V.lob_id,
           CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END,
-          CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END
+          CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
+--          ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
+          CASE WHEN policyimage.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+          Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
 --          PolicyImage.policy_id,
 --          PolicyImage.Policyimage_num,
  --         PolicyImage.renewal_ver,
@@ -93,18 +113,18 @@ view: eop_claims_triangle_quarter {
   --        policy,
   --        PolicyImage.eff_date,
           --claim_number
-UNION ALL
-Select    '20192','Q1','20192',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
-UNION ALL
-Select    '20192','Q1','20193',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
-UNION ALL
-Select    '20192','Q1','20194',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
-UNION ALL
-Select    '20192','Q1','20201',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
-UNION ALL
-Select    '20192','Q1','20202',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
-UNION ALL
-Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20192',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20193',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20194',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20201',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20202',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
+--UNION ALL
+--Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
 
        ;;
   }
@@ -115,7 +135,7 @@ Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
     hidden: yes
     # sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num, ' ',
     #                   ${TABLE}.w_quarter)  ;;
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.Policy_quarter);;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.Policy_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.treaty);;
     }
 
 
@@ -140,7 +160,7 @@ Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
   }
 
   dimension: trans_year_quarter {
-    label: "Trans Year_QTR"
+    label: "Trans Year_QTR (YYYYQ)"
     type: string
     hidden: yes
     sql: ${TABLE}.w_quarter ;;
@@ -191,6 +211,27 @@ Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury',0,0,0,0,0,0
     type: string
     hidden: yes
     sql: ${TABLE}.caption ;;
+  }
+
+  # dimension: liab_full {
+  #   type: string
+  #   hidden: yes
+  #   sql: ${TABLE}.LiabOnly_Full;;
+
+  # }
+
+  dimension: treaty {
+    label: "Treaty Name"
+    hidden: yes
+    type: string
+    sql: ${TABLE}.treaty ;;
+  }
+
+  dimension: new_renewal {
+    label: "New_Renew"
+    hidden: yes
+    type: string
+    sql: ${TABLE}.NewRen ;;
   }
 
   # dimension: policy_id {
