@@ -5,7 +5,7 @@ include: "*.view"
 
 explore: eop_premium_triangle_quarter {
   group_label: "Diamond Analytics (Triangles)"
-  label: "Quarterly Triangles"
+  label: "Triangles - Policy Quarter"
   view_label: "Premium"
 
 
@@ -21,8 +21,6 @@ join: eop_claims_triangle_quarter {
         AND ${eop_claims_triangle_quarter.treaty} = ${eop_premium_triangle_quarter.treaty}
         AND ${eop_claims_triangle_quarter.new_renewal} = ${eop_premium_triangle_quarter.new_renewal};;
 #       AND ${eop_claims_triangle_quarter.liab_full} = ${eop_premium_triangle_quarter.liab_full}
-
-
 
 }
 
