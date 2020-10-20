@@ -5,7 +5,7 @@ include: "*.view"
 
 explore: eop_premium_triangle_accident_quarterly {
   group_label: "Diamond Analytics (Triangles)"
-  label: "Quarterly Triangles - Accident Year"
+  label: "Triangles - Accident Quarter"
   view_label: "Premium"
   # fields: [total_written_premium, total_earned_premium, total_unearned_premium]
 
