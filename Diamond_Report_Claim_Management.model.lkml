@@ -16,12 +16,32 @@ explore: claim_feature {
 #     claim_feature.reported_date_year, claim_feature.reported_date_week]
 #   sql_always_where: ${claimtransactionstatus_id} IN (1, 4, 7) ;;
 
+    # THIS REASON CODE IS NOT CURRENTLY USED
+    # join: claim_feature_close_reason {
+    #   type: inner
+    #   view_label: "Claim Feature"
+    #   sql_on: ${claim_feature.claimfeatureclosereason_id} = ${claim_feature_close_reason.claimfeatureclosereason_id};;
+    # }
 
     join: claim_control {
       type: inner
       view_label: "Claim Detail"
       sql_on: ${claim_feature.claimcontrol_id} = ${claim_control.claimcontrol_id};;
       relationship: one_to_many
+    }
+
+    join: claim_close_reason {
+      type: inner
+      view_label: "Claim Detail"
+      sql_on: ${claim_control.claimclosereason_id} = ${claim_close_reason.claimclosereason_id};;
+      relationship: one_to_many
+    }
+
+    join: dt_claim_total_loss {
+      type: left_outer
+      view_label: "Claim Detail"
+      sql_on: ${claim_control.claimcontrol_id} = ${dt_claim_total_loss.claimcontrol_id} ;;
+      relationship: one_to_one
     }
 
     join: dt_claims_first_activity_1 {

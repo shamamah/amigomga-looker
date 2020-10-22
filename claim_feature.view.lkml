@@ -114,11 +114,13 @@ view: claim_feature {
 
   dimension: in_litigation {
     type: string
+    hidden: yes
     sql: ${TABLE}.in_litigation ;;
   }
 
   dimension: in_suit {
     type: string
+    hidden: yes
     sql: ${TABLE}.in_suit ;;
   }
 
@@ -227,7 +229,15 @@ view: claim_feature {
 
   dimension: attorney_involved_date {
     type: date
+    hidden: yes
     sql: ${TABLE}.attorney_involved_date ;;
+  }
+
+  dimension: attorney_rep {
+    label: "Atty Rep"
+    type: string
+    sql: CASE WHEN ${TABLE}.attorney_involved_date = '1800-01-01' or
+            ${TABLE}.attorney_involved_date is NULL THEN 'No' ELSE 'Yes' END;;
   }
 
   dimension_group: claimdenial_date {

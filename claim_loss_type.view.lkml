@@ -3,7 +3,6 @@ view: claim_loss_type {
 
   dimension: claimlosstype_id {
     label: "Loss Type Code"
-    view_label: "Claim"
     primary_key: yes
     hidden: no
     type: number
@@ -12,7 +11,6 @@ view: claim_loss_type {
 
   dimension: dscr {
     label: "Loss Type"
-    view_label: "Claim"
     type: string
     sql: ${TABLE}.dscr ;;
   }
