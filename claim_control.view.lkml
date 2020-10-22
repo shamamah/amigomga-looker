@@ -17,7 +17,7 @@ view: claim_control {
       icon_url: "http://www.insuresoft.com/favicon.ico"
     }
     type: string
-    label: "Number"
+    label: "Claim Number"
     sql: ${TABLE}.claim_number ;;
   }
 
@@ -35,6 +35,7 @@ view: claim_control {
 
   dimension: claimclosereason_id {
     label: "Close Reason Code"
+    hidden: yes
     type: number
     sql: case when ISNULL(${TABLE}.claimclosereason_id,-1)>=0 then ${TABLE}.claimclosereason_id else NULL end  ;;
   }

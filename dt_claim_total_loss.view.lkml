@@ -9,6 +9,7 @@ view: dt_claim_total_loss {
 
   dimension: claimcontrol_id {
     type: number
+    hidden: yes
     sql: ${TABLE}.claimcontrol_id ;;
   }
 
