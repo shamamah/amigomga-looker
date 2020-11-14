@@ -7,7 +7,7 @@ view: eop_claims_triangle_treaty_quarter {
                                               WHEN CFE.month in (11,12,1) THEN '3'
                                               WHEN CFE.month in (2,3,4) THEN '4'
                                               END) as w_quarter,
---        CAST('Q' + CAST(DATEDIFF(q, DATEADD(m, -1, ClaimControl.loss_date), DATEADD(m, -1, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01')) + 1 as varchar(1)) as varchar(2)) as QuarterID,
+        CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)) as QuarterID,
 --        CONCAT(CASE WHEN MONTH(ClaimControl.loss_date) < 5 THEN YEAR(ClaimControl.loss_date)-1 ELSE YEAR(ClaimControl.loss_date) END,
   --            CASE WHEN MONTH(ClaimControl.loss_date) in (5,6,7) THEN '1'
     --                                          WHEN MONTH(ClaimControl.loss_date) in (8,9,10) THEN '2'
@@ -93,7 +93,7 @@ view: eop_claims_triangle_treaty_quarter {
                                               WHEN CFE.month in (11,12,1) THEN '3'
                                               WHEN CFE.month in (2,3,4) THEN '4'
                                               END),
---                CAST('Q' + CAST(DATEDIFF(q, DATEADD(m, -1, ClaimControl.loss_date), DATEADD(m, -1, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01')) + 1 as varchar(1)) as varchar(2)),
+             CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)),
 --                CONCAT(CASE WHEN MONTH(ClaimControl.loss_date) < 5 THEN YEAR(ClaimControl.loss_date)-1 ELSE YEAR(ClaimControl.loss_date) END,
 --              CASE WHEN MONTH(ClaimControl.loss_date) in (5,6,7) THEN '1'
   --                                            WHEN MONTH(ClaimControl.loss_date) in (8,9,10) THEN '2'
@@ -138,8 +138,8 @@ view: eop_claims_triangle_treaty_quarter {
     hidden: yes
     # sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num, ' ',
     #                   ${TABLE}.w_quarter)  ;;
-    # sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.NewRen);;
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
+    # sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
   }
 
 
@@ -156,12 +156,12 @@ view: eop_claims_triangle_treaty_quarter {
   #   sql: ${TABLE}.Accident_Quarter;;
   # }
 
-  # dimension: lag_year_quarter {
-  #   label: "Lag Year_QTR"
-  #   hidden: yes
-  #   type: string
-  #   sql: ${TABLE}.quarterID;;
-  # }
+  dimension: lag_year_quarter {
+    label: "Lag Year_QTR"
+    hidden: yes
+    type: string
+    sql: ${TABLE}.quarterID;;
+  }
 
   dimension: trans_year_quarter {
     label: "Trans Year_QTR (YYYYQ)"

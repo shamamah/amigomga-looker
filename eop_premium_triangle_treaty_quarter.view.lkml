@@ -6,7 +6,7 @@ view: eop_premium_triangle_treaty_quarter {
                                         WHEN month in (11,12,1) THEN '3'
                                         WHEN month in (2,3,4) THEN '4'
                                         END) as w_quarter,
- --       CAST('Q' + CAST(DATEDIFF(q, DATEADD(m, -1, xx.eff_date), DATEADD(m, -1, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01')) + 1 as varchar(1)) as varchar(2)) as QuarterID,
+        CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)) as QuarterID,
  --       CONCAT(CASE WHEN MONTH(xx.eff_date) < 5 THEN YEAR(xx.eff_date)-1 ELSE YEAR(xx.eff_date) END,
   --                  CASE WHEN MONTH(xx.eff_date) in (5,6,7) THEN '1'
     --                                    WHEN MONTH(xx.eff_date) in (8,9,10) THEN '2'
@@ -103,7 +103,7 @@ view: eop_premium_triangle_treaty_quarter {
             unit_num,
             policy,
             emp.eff_date) xx
-            ON t.lob_id = xx.lob_id
+     ON t.lob_id = xx.lob_id
         AND xx.eff_date between t.eff_date and t.exp_date
      INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
@@ -124,7 +124,7 @@ view: eop_premium_triangle_treaty_quarter {
                                         WHEN month in (11,12,1) THEN '3'
                                         WHEN month in (2,3,4) THEN '4'
                                         END),
---      CAST('Q' + CAST(DATEDIFF(q, DATEADD(m, -1, xx.eff_date), DATEADD(m, -1, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01')) + 1 as varchar(1)) as varchar(2)),
+        CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)),
 --      CONCAT(CASE WHEN MONTH(xx.eff_date) < 5 THEN YEAR(xx.eff_date)-1 ELSE YEAR(xx.eff_date) END,
  --                   CASE WHEN MONTH(xx.eff_date) in (5,6,7) THEN '1'
    --                                     WHEN MONTH(xx.eff_date) in (8,9,10) THEN '2'
@@ -149,7 +149,7 @@ view: eop_premium_triangle_treaty_quarter {
     primary_key: yes
     hidden: yes
     # sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.NewRen)
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.treaty, ' ', ${TABLE}.NewRen)
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.treaty, ' ', ${TABLE}.NewRen)
       ;;
   }
 
@@ -185,11 +185,11 @@ view: eop_premium_triangle_treaty_quarter {
   #   sql: ${TABLE}.Policy_Quarter;;
   # }
 
-  # dimension: lag_year_quarter {
-  #   label: "_Lag Year_QTR"
-  #   type: string
-  #   sql: ${TABLE}.quarterID;;
-  # }
+  dimension: lag_year_quarter {
+    label: "_Lag Year_QTR"
+    type: string
+    sql: ${TABLE}.quarterID;;
+  }
 
   dimension: trans_year_quarter {
     label: "_Trans Year_QTR (YYYYQ)"
