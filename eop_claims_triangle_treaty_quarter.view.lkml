@@ -1,12 +1,12 @@
 view: eop_claims_triangle_treaty_quarter {
   derived_table: {
     sql: SELECT
---        CONCAT(CASE WHEN CFE.Month < 5 THEN CFE.year-1 ELSE CFE.Year END,
---              CASE WHEN CFE.month in (5,6,7) THEN '1'
---                                              WHEN CFE.month in (8,9,10) THEN '2'
---                                              WHEN CFE.month in (11,12,1) THEN '3'
---                                              WHEN CFE.month in (2,3,4) THEN '4'
---                                              END) as w_quarter,
+        CONCAT(CASE WHEN CFE.Month < 5 THEN CFE.year-1 ELSE CFE.Year END,
+              CASE WHEN CFE.month in (5,6,7) THEN '1'
+                                              WHEN CFE.month in (8,9,10) THEN '2'
+                                              WHEN CFE.month in (11,12,1) THEN '3'
+                                              WHEN CFE.month in (2,3,4) THEN '4'
+                                              END) as w_quarter,
       CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)) as QuarterID,
 
 --    CAST('Q' +
@@ -99,12 +99,12 @@ view: eop_claims_triangle_treaty_quarter {
               WHERE
                 CFE.claimeoplevel_id = 3
               GROUP BY
---                CONCAT(CASE WHEN CFE.Month < 5 THEN CFE.year-1 ELSE CFE.Year END,
---              CASE WHEN CFE.month in (5,6,7) THEN '1'
---                                              WHEN CFE.month in (8,9,10) THEN '2'
---                                              WHEN CFE.month in (11,12,1) THEN '3'
---                                              WHEN CFE.month in (2,3,4) THEN '4'
---                                              END),
+                CONCAT(CASE WHEN CFE.Month < 5 THEN CFE.year-1 ELSE CFE.Year END,
+                              CASE WHEN CFE.month in (5,6,7) THEN '1'
+                                              WHEN CFE.month in (8,9,10) THEN '2'
+                                              WHEN CFE.month in (11,12,1) THEN '3'
+                                              WHEN CFE.month in (2,3,4) THEN '4'
+                                              END),
         CAST('Q' + CAST(DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3 + 1 as varchar(1)) as varchar(2)),
 --    CAST('Q' +
 --      CAST((DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3
@@ -161,7 +161,7 @@ view: eop_claims_triangle_treaty_quarter {
     hidden: yes
     # sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num, ' ',
     #                   ${TABLE}.w_quarter)  ;;
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
     # sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
   }
 
