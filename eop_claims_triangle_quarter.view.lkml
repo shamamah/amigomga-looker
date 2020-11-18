@@ -125,7 +125,6 @@ view: eop_claims_triangle_quarter {
 --Select    '20192','Q1','20202',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
 --UNION ALL
 --Select    '20192','Q1','20203',1,11,1,1,'Bodily Injury','Liab',0,0,0,0,0,0
-
        ;;
   }
 
@@ -151,6 +150,7 @@ view: eop_claims_triangle_quarter {
     hidden: yes
     sql: ${TABLE}.Policy_Quarter;;
   }
+
 
   dimension: lag_year_quarter {
     label: "Lag Year_QTR"
@@ -249,25 +249,25 @@ view: eop_claims_triangle_quarter {
   measure: loss_reserve {
     type: sum
     sql: ${TABLE}.LossReserve ;;
-    drill_fields: [detail*]
+
   }
 
   measure: loss_paid {
     type: sum
     sql: ${TABLE}.LossPaid ;;
-    drill_fields: [detail*]
+
   }
 
   measure: salvage {
     type: sum
     sql: ${TABLE}.Salvage ;;
-    drill_fields: [detail*]
+
   }
 
   measure: subro {
     type: sum
     sql: ${TABLE}.Subro ;;
-    drill_fields: [detail*]
+
   }
 
   measure: expense_reserve {
@@ -278,28 +278,28 @@ view: eop_claims_triangle_quarter {
   measure: expense_paid {
     type: sum
     sql: ${TABLE}.expense_paid ;;
-    drill_fields: [detail*]
+
   }
 
   measure: incurred_with_expense_ss {
     label: "INC Paid+Expenses+Reserves-SS"
     type: sum
     sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve + ${TABLE}.expense_paid + ${TABLE}.expense_reserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
-    drill_fields: [detail*]
+
   }
 
   measure: incurred_gross_pd {
     label: "INC Paid+Reserves"
     type: sum
     sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve;;
-    drill_fields: [detail*]
+
   }
 
   measure: incurred_net_pd_ss {
     label: "INC Paid+Reserves-SS"
     type: sum
     sql: ${TABLE}.LossPaid + ${TABLE}.LossReserve - ${TABLE}.Subro - ${TABLE}.Salvage;;
-    drill_fields: [detail*]
+
   }
 
   # dimension: policy {
@@ -321,8 +321,11 @@ view: eop_claims_triangle_quarter {
   # }
 
 
-  set: detail {
+  set: ALL_FIELDS {
     fields: [
+      incurred_with_expense_ss,
+      incurred_gross_pd,
+      incurred_net_pd_ss,
       loss_reserve,
       loss_paid,
       expense_paid,

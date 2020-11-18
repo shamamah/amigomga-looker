@@ -8,6 +8,12 @@ view: dt_policyimage_num_unique {
  ;;
     }
 
+  dimension: unique_primary_key {
+    type: number
+    hidden: yes
+    sql: CONCAT(${TABLE}.policy_id, ' ', ${TABLE}.policyimage_num);;
+  }
+
     dimension: policy_id {
       type: number
       hidden: yes

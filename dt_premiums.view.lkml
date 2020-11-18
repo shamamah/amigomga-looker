@@ -10,7 +10,7 @@ view: dt_premiums {
         coveragecode_id,
         caption,
         policy_id,
---        Policyimage_num,
+ --       Policyimage_num,
         renewal_ver,
         unit_num,
         policy,
@@ -26,7 +26,7 @@ view: dt_premiums {
                 EMP.coveragecode_id,
                 CCV.caption,
                 policy_id,
-    --            Policyimage_num,
+--                Policyimage_num,
                 renewal_ver,
                 unit_num,
                 policy,
@@ -48,7 +48,7 @@ view: dt_premiums {
             EMP.coveragecode_id,
             CCV.caption,
             policy_id,
- --           Policyimage_num,
+--            Policyimage_num,
             renewal_ver,
             unit_num,
             policy,
@@ -66,7 +66,7 @@ view: dt_premiums {
             EMP.coveragecode_id,
             CCV.caption,
             policy_id,
---            Policyimage_num,
+ --           Policyimage_num,
             renewal_ver,
             unit_num,
             policy,
@@ -86,7 +86,7 @@ view: dt_premiums {
             EMP.coveragecode_id,
             CCV.caption,
             policy_id,
- --           Policyimage_num,
+  --          Policyimage_num,
             renewal_ver,
             unit_num,
             policy,
@@ -100,7 +100,7 @@ view: dt_premiums {
             coveragecode_id,
             caption,
             policy_id,
-  --          Policyimage_num,
+     --       Policyimage_num,
             renewal_ver,
             unit_num,
             policy,
@@ -211,7 +211,6 @@ view: dt_premiums {
     hidden: yes
     sql: ${TABLE}.policy_id ;;
   }
-
 
   dimension: renewal_ver {
     type: number

@@ -27,7 +27,6 @@ view: policy_image {
   }
 
   dimension: policy {
-    hidden: yes
     type: string
     sql: ${TABLE}.policy ;;
   }

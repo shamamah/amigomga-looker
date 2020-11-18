@@ -6,6 +6,7 @@ view: dt_quote {
             pim.policyimage_num,
             pim.version_id,
             Policy,
+            Quote,
             pim.Renewal_ver,
             pim.agency_id,
             Eff_date,
@@ -90,6 +91,11 @@ view: dt_quote {
     dimension: policy {
       type: string
       sql: ${TABLE}.Policy ;;
+    }
+
+    dimension: quote {
+      type: string
+      sql: ${TABLE}.Quote ;;
     }
 
     dimension: renewal_ver {

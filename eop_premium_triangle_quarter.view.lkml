@@ -26,7 +26,8 @@ view: eop_premium_triangle_quarter {
         SUM(TotalEarnedPremium) as EarnedPremium,
         SUM(TotalWrittenPremium) as WrittenPremium,
     SUM(TotalUnearnedPremium) as UnearnedPremium
-        FROM (SELECT
+    FROM  Customer_Reports.dbo.Treaty t
+        LEFT JOIN (SELECT
                 EMP.YEAR,
                 EMP.Month,
                 V.company_id,
@@ -102,11 +103,10 @@ view: eop_premium_triangle_quarter {
             unit_num,
             policy,
             emp.eff_date) xx
+            ON t.lob_id = xx.lob_id
+        AND xx.eff_date between t.eff_date and t.exp_date
      INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
-       INNER JOIN Customer_Reports.dbo.Treaty t
-            ON t.lob_id = xx.lob_id
-            AND xx.eff_date between t.eff_date and t.exp_date
       LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
       JOIN ProductionBackup.dbo.Coverage c
         ON c.policy_id = pim.policy_id
