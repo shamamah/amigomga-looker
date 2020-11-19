@@ -14,16 +14,17 @@ explore: dt_premiums {
   join: company_state_lob {
     view_label: "Company"
     type: inner
-    relationship: many_to_one
+    relationship: one_to_many
     sql_on: ${company_state_lob.company_id} = ${dt_premiums.company_id}
         AND ${company_state_lob.lob_id} = ${dt_premiums.lob_id}
         AND ${company_state_lob.state_id} = ${dt_premiums.state_id};;
   }
 
+    #-----------------------------------------------------------
   join: dt_policyimage_num_unique {
     view_label: "TEST"
     type: inner
-    relationship: one_to_one
+    relationship: one_to_many
     sql_on: ${dt_premiums.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${dt_premiums.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
   }
@@ -39,11 +40,26 @@ explore: dt_premiums {
   join: policy_image {
     view_label: "Policy"
     type: inner
-#     fields: [count, policy_number, renewal_ver, eff_date]
-    relationship: many_to_one
+    fields: [policy_number, renewal_ver, eff_date, exp_date, premium_written,
+        policy_image.count, transtype_id]
+    relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
+
+  join: v_agency {
+    view_label: "Agency"
+    type: inner
+    sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
+    relationship: one_to_many
+  }
+
+  # join: dt_agency_location {
+  #   view_label: "Agency"
+  #   type: inner
+  #   sql_on: ${v_agency.agency_id} = ${dt_agency_location.agency_id} ;;
+  #   relationship: one_to_one
+  # }
 
   join: policy_current_status {
     view_label: "Policy"
@@ -57,6 +73,7 @@ explore: dt_premiums {
     sql_on: ${policy_image.policy_id} = ${dt_quote_source.policy_id} ;;
     relationship: one_to_one
   }
+#-------------------------------------------------
 
   join: dt_coverage_liab_phys {
     view_label: "Coverage"
@@ -74,11 +91,6 @@ explore: dt_premiums {
     relationship: one_to_many
   }
 
-  join: v_agency {
-    type: inner
-    sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
-    relationship: one_to_many
-  }
 
   join: vehicle {
     view_label: "Vehicle"
@@ -141,17 +153,17 @@ explore: dt_premiums {
 
     join: marital_status {
       view_label: "Driver"
-      type: inner
+      type: left_outer
       fields: [marital_status.dscr]
-      relationship: one_to_one
+      relationship: one_to_many
       sql_on: ${marital_status.maritalstatus_id} = ${driver_name.maritalstatus_id} ;;
     }
 
     join: sex {
       view_label: "Driver"
-      type: inner
+      type: left_outer
       fields: [sex.dscr]
-      relationship: one_to_one
+      relationship: one_to_many
       sql_on: ${sex.sex_id} = ${driver_name.sex_id} ;;
     }
 
@@ -173,9 +185,10 @@ explore: dt_premiums {
 
     join: dt_proof_of_prior {
       view_label:  "Proof of Prior"
-      type: full_outer
+      type: left_outer
       relationship: one_to_one
-      sql_on: ${dt_proof_of_prior.policy_id} = ${dt_policyimage_num_unique.policy_id};;
+      sql_on: ${dt_proof_of_prior.policy_id} = ${dt_policyimage_num_unique.policy_id}
+              AND ${dt_proof_of_prior.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
     }
 
     join: dt_mtd_claims {
