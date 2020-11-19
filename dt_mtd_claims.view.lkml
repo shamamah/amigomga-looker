@@ -16,6 +16,8 @@ view: dt_mtd_claims {
           policy,
           PolicyImage.eff_date,
           claim_number,
+          loss_date,
+          cfs.dscr as Claimstatus,
           SUM(indemnity_reserve) AS LossReserve,
           SUM(indemnity_paid) AS LossPaid,
           SUM(salvage) AS Salvage,
@@ -53,6 +55,8 @@ view: dt_mtd_claims {
           AND CFE.claimfinancials_num = CF.claimfinancials_num
         INNER JOIN [Version] V WITH(NOLOCK)
           ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
+        LEFT JOIN claimfeaturestatus cfs ON cfs.claimfeaturestatus_id =
+                ClaimFeature.claimfeaturestatus_id
         WHERE
           CFE.claimeoplevel_id = 3
         GROUP BY
@@ -70,7 +74,9 @@ view: dt_mtd_claims {
           ISNULL(CCV.Vehicle_num, 1),
           policy,
           PolicyImage.eff_date,
-          claim_number
+          claim_number,
+          loss_date,
+          cfs.dscr
        ;;
     }
 
@@ -210,6 +216,18 @@ view: dt_mtd_claims {
       sql: ${TABLE}.policy ;;
     }
 
+    dimension_group: loss_date  {
+      label: "Loss Date"
+      type: time
+      timeframes: [date,week,month,quarter,year]
+      sql: ${TABLE}.loss_date;;
+    }
+
+    dimension: claim_status {
+      label: "Claim Status"
+      type:  string
+      sql: ${TABLE}.claimstatus ;;
+    }
     dimension: eff_date {
       type: string
       hidden: yes
