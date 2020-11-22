@@ -2,21 +2,21 @@ view: dt_premiums {
 
   derived_table: {
     sql: SELECT
-        COALESCE(xx.year, z.year) year,
-        COALESCE(xx.month, z.month) month,
-        COALESCE(xx.company_id, z.company_id) company_id,
-        COALESCE(xx.state_id, z.state_id) state_id,
-        COALESCE(xx.lob_id, z.lob_id) lob_id,
-        COALESCE(xx.coveragecode_id, z.coveragecode_id) coveragecode_id,
-        COALESCE(xx.caption, z.caption) caption,
-        COALESCE(xx.policy_id, z.policy_id) policy_id,
+        year,
+        month,
+        company_id,
+        state_id,
+        lob_id,
+        coveragecode_id,
+        caption,
+        policy_id,
  --       Policyimage_num,
-        COALESCE(xx.renewal_ver, z.renewal_ver) renewal_ver,
-        COALESCE(xx.unit_num, z.vehicle_num) unit_num,
-        COALESCE(xx.policy, z.policy) policy,
-        COALESCE(xx.eff_date, z.eff_date) eff_date,
-        COALESCE(SUM(xx.TotalEarnedPremium), 0) as TotalEarnedPremium,
-        COALESCE(SUM(xx.TotalWrittenPremium), 0) as TotalWrittenPremium
+        renewal_ver,
+        unit_num,
+        policy,
+        eff_date,
+        SUM(TotalEarnedPremium) as TotalEarnedPremium,
+        SUM(TotalWrittenPremium) as TotalWrittenPremium
         FROM (SELECT
                 EMP.YEAR,
                 EMP.Month,
@@ -91,6 +91,114 @@ view: dt_premiums {
             unit_num,
             policy,
             emp.eff_date) xx
+      Group by
+            Year,
+            Month,
+            company_id,
+            state_id,
+            lob_id,
+            coveragecode_id,
+            caption,
+            policy_id,
+     --       Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            eff_date
+
+  UNION ALL
+  -----------------------------------------------------------------------------------------------------------------
+  SELECT
+        z.year,
+        z.month,
+        z.company_id,
+        z.state_id,
+        z.lob_id,
+        z.coveragecode_id,
+        z.caption,
+        z.policy_id,
+ --       Policyimage_num,
+        z.renewal_ver,
+        z.vehicle_num,
+        z.policy,
+        z.eff_date,
+        0 as TotalEarnedPremium,
+        0 as TotalWrittenPremium
+        FROM (SELECT
+                EMP.YEAR,
+                EMP.Month,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
+
+
+          UNION ALL
+
+          SELECT
+            YEAR(GETDATE()-1) as year,
+            MONTH(GETDATE()-1) as month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+ --           Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date,
+            SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+            SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN .CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          GROUP BY
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+  --          Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date) xx
+
   RIGHT JOIN (SELECT
           CFE.Year,
           CFE.Month,
@@ -173,20 +281,21 @@ view: dt_premiums {
               AND xx.unit_num = z.vehicle_num
               AND xx.coveragecode_id = z.coveragecode_id
               AND xx.year = z.year
-      Group by
-    COALESCE(xx.year, z.year),
-        COALESCE(xx.month, z.month),
-        COALESCE(xx.company_id, z.company_id),
-        COALESCE(xx.state_id, z.state_id),
-        COALESCE(xx.lob_id, z.lob_id),
-        COALESCE(xx.coveragecode_id, z.coveragecode_id),
-        COALESCE(xx.caption, z.caption),
-        COALESCE(xx.policy_id, z.policy_id),
- --       Policyimage_num,
-        COALESCE(xx.renewal_ver, z.renewal_ver),
-        COALESCE(xx.unit_num, z.vehicle_num),
-        COALESCE(xx.policy, z.policy),
-        COALESCE(xx.eff_date, z.eff_date)
+  Where xx.policy_id is null
+           Group by
+           z.Year,
+            z.Month,
+            z.company_id,
+            z.state_id,
+            z.lob_id,
+            z.coveragecode_id,
+            z.caption,
+            z.policy_id,
+     --       Policyimage_num,
+            z.renewal_ver,
+            z.vehicle_num,
+            z.policy,
+            z.eff_date
  ;;
   }
 
