@@ -296,7 +296,8 @@ view: dt_premiums {
             z.vehicle_num,
             z.policy,
             z.eff_date
- ;;
+    ;;
+    # sql_trigger_value: Select Max(pcadded_date) from policyimage ;;
   }
 
 

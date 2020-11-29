@@ -203,6 +203,11 @@ view: policy_image {
   }
 
   dimension: policy_number {
+    link: {
+      label: "Open in Diamond"
+      url: "https://c76-prod.diamondasaservice.com/DiamondWeb/Employee/Policy/{{ value }}"
+      icon_url: "http://www.insuresoft.com/favicon.ico"
+    }
     type: string
     sql:  ${TABLE}.policy ;;
   }
