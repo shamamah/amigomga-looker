@@ -41,7 +41,7 @@ explore: dt_premiums {
     view_label: "Policy"
     type: inner
     fields: [policy_number, renewal_ver, eff_date, exp_date, premium_written,
-        policy_image.count, transtype_id]
+        policy_image.count, transtype_id, unique_policy]
     relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;

@@ -3,9 +3,16 @@ view: policy_image {
   view_label: "Policy"
 
   dimension: compound_primary_key {
+    type: string
     hidden: yes
     primary_key: yes
     sql: CONCAT(${policy_id}, '  ', ${policyimage_num}) ;;
+  }
+
+  dimension: unique_policy {
+    label: "Unique PolicyNo_Renewal"
+    type: string
+    sql: CONCAT(${policy_id}, '_', ${renewal_ver}) ;;
   }
 
   dimension: agency_id {
