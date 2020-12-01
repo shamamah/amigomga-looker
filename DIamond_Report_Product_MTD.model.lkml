@@ -95,7 +95,7 @@ explore: dt_premiums {
   join: vehicle {
     view_label: "Vehicle"
     type: inner
-    fields: [vehicle.year, vehicle.class_code, vehicle.isocollisionsymbol]
+    fields: [vehicle.year, vehicle.make, vehicle.model, vehicle.class_code, vehicle.isocollisionsymbol]
     relationship: one_to_many
     sql_on: ${vehicle.policy_id} = ${dt_policyimage_num_unique.policy_id}
           AND  ${vehicle.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num}
