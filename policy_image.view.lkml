@@ -9,12 +9,6 @@ view: policy_image {
     sql: CONCAT(${policy_id}, '  ', ${policyimage_num}) ;;
   }
 
-  dimension: unique_policy {
-    label: "Unique PolicyNo_Renewal"
-    type: string
-    sql: CONCAT(${policy_id}, '_', ${renewal_ver}) ;;
-  }
-
   dimension: agency_id {
     hidden: yes
     type: number
@@ -61,6 +55,13 @@ view: policy_image {
     type: time
     timeframes: [raw, date, week, month, year]
     sql: ${TABLE}.added_date ;;
+  }
+
+  measure: unique_count {
+    label: "Unique Policy Count"
+    type: count_distinct
+    sql: CONCAT(${policy_id}, '_', ${renewal_ver}) ;;
+    drill_fields: [policyimage_drill*]
   }
 
 #   dimension: days_from_offer_generation_to_policy_issue {
@@ -116,6 +117,12 @@ view: policy_image {
     label: "Renewal Term"
     type: string
     sql: ${TABLE}.renewal_ver ;;
+  }
+
+  dimension: new_renewal {
+    label: "New/Renewal"
+    type: string
+    sql: CASE WHEN ${TABLE}.renewal_ver = 1 THEN 'New' ELSE 'Renewal' END ;;
   }
 
   dimension_group: eff {
@@ -194,11 +201,6 @@ view: policy_image {
     type: time
     timeframes: [date, week, month, quarter, year]
     sql: ${TABLE}.received_date ;;
-  }
-
-  measure: count {
-    type:  count
-    drill_fields: [policyimage_drill*]
   }
 
 
