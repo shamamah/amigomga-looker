@@ -27,6 +27,22 @@ explore: dt_policy_pif {
     relationship: one_to_many
   }
 
+  join: dt_proof_of_prior {
+    view_label:  "Proof of Prior"
+    type: left_outer
+    relationship: one_to_one
+    sql_on: ${dt_proof_of_prior.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_proof_of_prior.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;
+  }
+
+  join: dt_policy_attachment {
+    view_label: "Attachment"
+    type: left_outer
+    relationship: many_to_one
+    sql_on: ${dt_policy_attachment.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_policy_attachment.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
+
   join: dt_policy_agency {
     view_label: "Agency"
     type: inner
