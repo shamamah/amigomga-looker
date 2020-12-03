@@ -73,6 +73,13 @@ view: policy {
     sql: ${TABLE}.first_eff_date ;;
   }
 
+  dimension_group: firstwritten_date {
+    label: "First Written Date"
+    type: time
+    timeframes: [date, week, month, quarter, year, day_of_week]
+    sql: ${TABLE}.firstwritten_date ;;
+  }
+
   measure: count_distinct_policy {
     type: count_distinct
     sql:  ${TABLE}.policy_id ;;

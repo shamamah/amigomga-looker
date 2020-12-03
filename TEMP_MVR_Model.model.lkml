@@ -51,6 +51,19 @@ join: dt_premiums  {
           AND ${dt_mvr_driver.policyimage_num} = ${policy_image.policyimage_num};;
   }
 
+  join: policy {
+    type: inner
+    relationship: one_to_many
+    fields: [policy.first_eff_date_month, policy.firstwritten_date_date, policy.firstwritten_date_month]
+    sql_on:  ${policy.policy_id} = ${policy_image.policy_id};;
+  }
+
+ join: dt_policy_pif {
+   type: cross
+   relationship: many_to_one
+   sql_on: ${policy.policy_id} = ${dt_policy_pif.policy_id} ;;
+ }
+
   join: reinsurance_treaty {
     type: inner
     sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} AND ${reinsurance_treaty.expiration_date}
