@@ -45,11 +45,6 @@ where  PIM.policystatuscode_id NOT IN (4, 5, 7, 8, 12, 13, 14)
          ;;
 
   }
-  measure: count {
-    label: "Policy Count"
-    type: count_distinct
-    sql: CONCAT(${policy_id},'_',${renewal_ver});;
-  }
 
   dimension: primary_key  {
     type: string
