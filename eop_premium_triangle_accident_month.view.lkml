@@ -125,7 +125,7 @@ view: eop_premium_triangle_accident_month {
 
     Select   Transmonth,
         'M019',
-        policymonth,
+        '201905',
         company_id,
         state_id,
         lob_id,
@@ -262,13 +262,13 @@ FROM (SELECT
 --        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')') a
     WHERE LagMonth = 'M001'
     and lobname = 'Amigo Blue Personal Auto Program'
-    and policymonth <= '201910'
+    and policymonth = '201910'
 
     UNION ALL
 
     Select   Transmonth,
         'M018',
-        policymonth,
+        '201906',
         company_id,
         state_id,
         lob_id,
@@ -404,7 +404,7 @@ FROM (SELECT
 --        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')') a
 WHERE LagMonth = 'M001'
 and lobname = 'Amigo Blue Personal Auto Program'
-and policymonth <= '201910'
+and policymonth = '201910'
  ;;
   }
 
