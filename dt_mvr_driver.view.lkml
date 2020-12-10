@@ -10,7 +10,7 @@ view: dt_mvr_driver {
         and dal.policyimage_num = d.policyimage_num
         and dal.driver_num = d.driver_num
         join name n ON n.name_id = dal.name_id
-        and dlstate_id not in (306, 307,310)
+        and dlstate_id < 52
         left join (SELECT xt.policy_id, driver_num, policy, xt.request_id, sent_date, xt.dln
                FROM [dbo].[IIXTransmission] xt
                 JOIN [dbo].[DriverIIXTransmissionLink] pt ON pt.request_id = xt.request_id
