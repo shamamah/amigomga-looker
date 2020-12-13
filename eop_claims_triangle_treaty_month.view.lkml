@@ -2,10 +2,12 @@ view: eop_claims_triangle_treaty_month {
   derived_table: {
     sql: SELECT
               CFE.year*100+cfe.month as transmonth,
-              'M' + RIGHT('00' + CAST(DATEDIFF(m, t.eff_date, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(3)), 3) as Lagmonth,
+              'M' + RIGHT('00' + CAST(DATEDIFF(m, loss_date, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01') + 1  as varchar(3)), 3) as Lagmonth,
+              YEAR(loss_date)*100+MONTH(Loss_date) as accident_month,
               V.company_id,
               V.state_id,
               V.lob_id,
+              lob.lobname,
               CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END as coveragecode_id,
               CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END as caption,
     --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
@@ -67,6 +69,8 @@ view: eop_claims_triangle_treaty_month {
               AND CFE.claimfinancials_num = CF.claimfinancials_num
             INNER JOIN [Version] V WITH(NOLOCK)
               ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
+            INNER JOIN [LOB] lob WITH(NOLOCK)
+              ON lob.lob_id = v.lob_id
           INNER JOIN Customer_Reports.dbo.Treaty t
                 ON t.lob_id = v.lob_id
                 AND PolicyImage.eff_date between t.eff_date and t.exp_date
@@ -74,10 +78,12 @@ view: eop_claims_triangle_treaty_month {
               CFE.claimeoplevel_id = 3
             GROUP BY
               CFE.year*100+cfe.month,
-              'M' + RIGHT('00' + CAST(DATEDIFF(m, t.eff_date, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(3)), 3),
+              'M' + RIGHT('00' + CAST(DATEDIFF(m, loss_date, CAST(cfe.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(cfe.month as varchar(2)), 2) as varchar(2)) + '-01') + 1  as varchar(3)), 3),
+              YEAR(loss_date)*100+MONTH(Loss_date),
               V.company_id,
               V.state_id,
               V.lob_id,
+              lob.lobname,
               CASE WHEN V.lob_id = 1 AND ClaimCoverage.coveragecode_id = 9 THEN 8 ELSE ClaimCoverage.coveragecode_id END,
               CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
     --          ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
@@ -92,7 +98,7 @@ view: eop_claims_triangle_treaty_month {
     hidden: yes
     # sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num, ' ',
     #                   ${TABLE}.w_quarter)  ;;
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.transmonth, ' ', ${TABLE}.lagmonth, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.transmonth, ' ', ${TABLE}.lagmonth, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty, ' ', ${TABLE}.accidentmonth);;
     # sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Treaty);;
   }
 
@@ -103,16 +109,23 @@ view: eop_claims_triangle_treaty_month {
     sql: ${TABLE}.company_id ;;
   }
 
-  dimension: accident_month {
-    label: "Accident Year_QTR"
-    hidden: yes
+  dimension: trans_month {
+    label: "Trans Month"
+    # hidden: yes
     type:  string
     sql: ${TABLE}.transmonth;;
   }
 
+  dimension: accident_month {
+    label: "Accident Month"
+    # hidden: yes
+    type:  string
+    sql: ${TABLE}.accident_month;;
+  }
+
   dimension: lag_year_month {
     label: "Lag Year_QTR"
-    hidden: yes
+    # hidden: yes
     type: string
     sql: ${TABLE}.lagmonth;;
   }
@@ -147,6 +160,18 @@ view: eop_claims_triangle_treaty_month {
     sql: ${TABLE}.state_id ;;
   }
 
+  dimension: lobname {
+    label: "Program Name"
+    type: string
+    sql: ${TABLE}.lobname ;;
+  }
+
+  dimension: caption {
+    label: "Coverage"
+    type: string
+    sql: ${TABLE}.caption ;;
+  }
+
   dimension: lob_id {
     type: number
     hidden: yes
@@ -165,11 +190,6 @@ view: eop_claims_triangle_treaty_month {
     sql: ${TABLE}.coveragecode_id ;;
   }
 
-  dimension: caption {
-    type: string
-    hidden: yes
-    sql: ${TABLE}.caption ;;
-  }
 
   # dimension: liab_full {
   #   type: string
@@ -180,14 +200,14 @@ view: eop_claims_triangle_treaty_month {
 
   dimension: treaty {
     label: "Treaty Name"
-    hidden: yes
+    # hidden: yes
     type: string
     sql: ${TABLE}.treaty ;;
   }
 
   dimension: new_renewal {
     label: "New_Renew"
-    hidden: yes
+    # hidden: yes
     type: string
     sql: ${TABLE}.NewRen ;;
   }
