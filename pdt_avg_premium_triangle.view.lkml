@@ -17,7 +17,8 @@ view: pdt_avg_premium_triangle {
         SUM(EOP.premium_earned_mtd) AS premium_earned_mtd,
         RunningTotal as ITDPremiumTotal,
         MP.majorperil,
-        EOP.Eff_Date as policy_effdate
+        EOP.Eff_Date as policy_effdate,
+    Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty
       FROM (SELECT
           EOP.[year] * 100 + EOP.[month] as TransMonth,
           EOP.policy,
@@ -92,6 +93,9 @@ view: pdt_avg_premium_triangle {
           ON EOP.majorperil_id = MP.majorperil_id
       INNER JOIN dbo.LOB LOB WITH (NOLOCK)
         ON EOP.lob_id = LOB.lob_id
+    INNER JOIN Customer_Reports.dbo.Treaty t
+    ON eop.eff_date between t.eff_date and t.exp_date
+    AND lob.lob_id = t.lob_id
       INNER JOIN dbo.[State] S WITH (NOLOCK)
         ON EOP.state_id = S.state_id
       INNER JOIN dbo.CompanyNameLink CNL WITH (NOLOCK)
@@ -115,7 +119,9 @@ view: pdt_avg_premium_triangle {
         S.[state],
         LOB.lobname,
         RunningTotal,
-        EOP.Eff_date ;;
+        EOP.Eff_date,
+        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')';;
+
       sql_trigger_value: SELECT MAX([year] * 100 + [month]) FROM EOPMonthlyPremiums;;
       indexes: ["policy", "transmonth", "renewal_ver", "coverage"]
   }
@@ -180,6 +186,12 @@ view: pdt_avg_premium_triangle {
       label: "Coverage"
       type: string
       sql: ${TABLE}.Coverage ;;
+    }
+
+    dimension: treaty {
+      label: "Treaty Name"
+      type: string
+      sql: ${TABLE}.Treaty ;;
     }
 
     dimension: commercial_name1 {
