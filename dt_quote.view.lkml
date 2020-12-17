@@ -26,7 +26,7 @@ view: dt_quote {
             premium_chg_written,
             0 as CashCollected,
             0 as ispif,
-            CASE WHEN version_id = 1 -- BLUE
+            CASE WHEN l.lob_id = 1 -- BLUE
                 THEN CASE WHEN TransType_id in (1,7) and policystatuscode_id not in (9,10) THEN -1
                   WHEN TransType_id = 2 THEN 1
                   WHEN TransType_id = 4 and policystatuscode_id not in (9,10, 11) --Premium_fullterm > 0
@@ -53,6 +53,8 @@ view: dt_quote {
                 END as Inforce,
             GETDATE() CreatedDate
             from ProductionBackup.dbo.policyimage pim
+            join ProductionBackup.dbo.Version v ON v.version_id = pim.version_id
+            join ProductionBackup.dbo.LOB l ON l.lob_id = v.lob_id
             INNER JOIN ProductionBackup.dbo.Policy P WITH(NOLOCK)
               ON P.policy_id = PIM.policy_id
             INNER JOIN ProductionBackup.dbo.Agency A WITH (NOLOCK)

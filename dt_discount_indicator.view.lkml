@@ -5,6 +5,9 @@ view: dt_discount_indicator {
                 FROM
                 (select pim.policy_id, pim.renewal_ver, DiscountType, dscr, discountind
                 FROM policyImage PIM
+                INNER JOIN Version V ON v.version_id = pim.version_id
+                INNER JOIN LOB l ON l.lob_id = v.lob_id
+                  AND l.lob_id = 1
                 CROSS JOIN
                 (Select distinct REPLACE(dscr, '_Amount', '') as discountType, dscr, 'No' as discountind
                     from CoverageAdditionalInfo
@@ -19,7 +22,6 @@ view: dt_discount_indicator {
               ) CAI
                 where
                     PIM.policystatuscode_id NOT IN (4, 5, 7, 8, 12, 13, 14)
-                    AND PIM.Version_id = 1
                     AND PIM.TransType_id in (2,4)) PIM
               LEFT OUTER JOIN
                       (Select distinct pim.policy_id, pim.renewal_ver, dscr,
@@ -29,8 +31,10 @@ view: dt_discount_indicator {
                   ON PIM.policy_id = ca.policy_id
                   AND PIM.policyimage_num = ca.policyimage_num
                   AND PIM.policystatuscode_id NOT IN (4, 5, 7, 8, 12, 13, 14)
-                  AND PIM.Version_id = 1
                   AND PIM.TransType_id in (2,4)
+              INNER JOIN Version V ON v.version_id = pim.version_id
+              INNER JOIN LOB l ON l.lob_id = v.lob_id
+                  AND l.lob_id = 1
               WHERE dscr like '%amount%'
                         ) ca
                 ON ca.policy_id = PIM.policy_id

@@ -1,9 +1,9 @@
 view: dt_proof_of_prior {
   derived_table: {
     sql:select l.lob_id, pim.policy_id, pim.renewal_ver,
-  CASE WHEN pim.version_id = 1 and RenewalDiscountApplied is NULL THEN 'No Prior'
-    WHEN pim.version_id = 2 and c1.CNT is not NULL THEN 'No Prior'
-    WHEN pim.version_id = 3 and c2.CNT is NULL THEN 'No Prior'
+  CASE WHEN l.lob_id = 1 and RenewalDiscountApplied is NULL THEN 'No Prior'
+    WHEN l.lob_id = 2 and c1.CNT is not NULL THEN 'No Prior'
+    WHEN l.lob_id = 3 and c2.CNT is NULL THEN 'No Prior'
   ELSE 'Prior' END as Prior,
 ISNULL(display_name, 'No Data') as PriorCompany
 from policyimage pim
@@ -19,17 +19,17 @@ Left JOIN (Select policy_id, SUM(ISNULL(Cast(cai.value as money),0)) as RenewalD
       where cai.dscr = 'Transfer Discount_Amount'
       group by policy_id) a
       ON a.policy_id = PIM.policy_id
-       and pim.version_id = 1
+       and l.lob_id = 1
 LEFT JOIN (Select policy_id, count(1) as CNT from Coverage
       where calc like '%_G)%' --- AMERICA
       group by policy_id) c1
     ON c1.policy_id = PIM.policy_id
-    AND pim.Version_id = 2
+    AND l.lob_id = 2
 LEFT JOIN (Select policy_id, count(1) as CNT from Coverage
       where calc like '%* Transfer Discount 0.9%' --- AMERICA
       group by policy_id) c2
     ON c2.policy_id = PIM.policy_id
-    AND pim.Version_id = 3
+    AND l.lob_id = 3
 left join (Select pc.policy_id, pc.policyimage_num, display_name
       from PriorCarrier pc
       left join  [dbo].[PriorCarrierNameLink] pcn
