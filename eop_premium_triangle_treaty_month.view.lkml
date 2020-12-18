@@ -1,8 +1,11 @@
 view: eop_premium_triangle_treaty_month {
   derived_table: {
     sql:  SELECT
-              (YEAR*100)+Month as Transmonth,
-              'M' + RIGHT('00' + CAST(DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(3)), 3) as Lagmonth,
+            DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as treaty_month,
+            CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END as policy_month,
+            DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
+            CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END as Lag_month,
+            DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as trans_month,
               company_id,
               state_id,
               xx.lob_id,
@@ -108,8 +111,11 @@ view: eop_premium_triangle_treaty_month {
                     ON xx.policy_id = cc1.policy_id
                     AND xx.renewal_ver = cc1.renewal_ver
             Group by
-              (YEAR*100)+Month,
-              'M' + RIGHT('00' + CAST(DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') + 1 as varchar(3)), 3),
+            DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
+            CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
+            DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
+            CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
+            DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
               company_id,
               state_id,
               xx.lob_id,
@@ -126,7 +132,7 @@ view: eop_premium_triangle_treaty_month {
   dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.transmonth, ' ', ${TABLE}.lagmonth, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.treaty)       ;;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.trans_month, ' ', ${TABLE}.lag_month, ' ', ${TABLE}.policy_month, ' ', ${TABLE}.treaty_month, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.treaty)       ;;
 #  sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.treaty, ' ', ${TABLE}.NewRen)
 
   }
@@ -164,16 +170,23 @@ view: eop_premium_triangle_treaty_month {
   # }
 
   dimension: lag_year_month {
-    label: "_Lag Year_QTR"
-    type: string
-    sql: ${TABLE}.lagmonth;;
+    label: "Lag Policy Month"
+    type: number
+    sql: ${TABLE}.lag_month;;
   }
 
-  dimension: trans_year_month {
-    label: "_Trans Year_QTR (YYYYQ)"
-    type: string
-    sql: ${TABLE}.transmonth ;;
+  dimension: trans_month {
+    label: "Trans Month"
+    type: number
+    sql: ${TABLE}.trans_month ;;
   }
+
+  dimension: policy_month {
+    label: "Policy Month"
+    type: number
+    sql: ${TABLE}.policy_month ;;
+  }
+
   # dimension: liab_full {
   #   type: string
   #   sql: ${TABLE}.LiabOnly_Full;;
