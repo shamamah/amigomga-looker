@@ -171,11 +171,13 @@ view: eop_claims_triangle_treaty_policy_month {
     dimension: lobname {
       label: "Program Name"
       type: string
+      hidden: yes
       sql: ${TABLE}.lobname ;;
     }
 
     dimension: caption {
       label: "Coverage"
+      hidden: yes
       type: string
       sql: ${TABLE}.caption ;;
     }
@@ -208,14 +210,14 @@ view: eop_claims_triangle_treaty_policy_month {
 
     dimension: treaty {
       label: "Treaty Name"
-      # hidden: yes
+      hidden: yes
       type: string
       sql: ${TABLE}.treaty ;;
     }
 
     dimension: new_renewal {
       label: "New_Renew"
-      # hidden: yes
+      hidden: yes
       type: string
       sql: ${TABLE}.NewRen ;;
     }

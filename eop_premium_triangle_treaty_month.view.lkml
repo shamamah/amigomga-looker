@@ -178,6 +178,7 @@ view: eop_premium_triangle_treaty_month {
   dimension: trans_month {
     label: "Trans Month"
     type: number
+    full_suggestions: yes
     sql: ${TABLE}.trans_month ;;
   }
 
