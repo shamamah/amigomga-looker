@@ -15,7 +15,8 @@ view: eop_claimcounts_triangle_accident_month {
         Sum(CASE WHEN ActionType = 'Reported' THEN 1 ELSE 0 END) as Reported,
         Sum(MonthlyClose) as Closed,
         Sum(CASE WHEN ClosedType = 'CWOP' and MonthlyClose = 1 THEN 1 ELSE 0 END) as ClosedNoPay,
-        Sum(CASE WHEN ClosedType = 'CWP' and MonthlyClose = 1 THEN 1 ELSE 0 END) as ClosedPay
+        Sum(CASE WHEN ClosedType = 'CWP' and MonthlyClose = 1 THEN 1 ELSE 0 END) as ClosedPay,
+        Sum(Outstanding) as Outstanding
 
 
        From (Select row_number() over (order by claim_number, claimfeature_num, Claimant_num, ProcessingDate) as id,
@@ -345,6 +346,12 @@ view: eop_claimcounts_triangle_accident_month {
     measure: closed_pay {
       type: sum
       sql: ${TABLE}.ClosedPay ;;
+      drill_fields: [detail*]
+    }
+
+    measure: outstanding {
+      type: sum
+      sql: ${TABLE}.outstanding ;;
       drill_fields: [detail*]
     }
 
