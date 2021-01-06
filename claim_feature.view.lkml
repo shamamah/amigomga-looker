@@ -114,7 +114,7 @@ view: claim_feature {
 
   dimension: in_litigation {
     type: string
-    hidden: yes
+    # hidden: yes
     sql: ${TABLE}.in_litigation ;;
   }
 
