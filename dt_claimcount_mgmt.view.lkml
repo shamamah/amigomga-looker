@@ -17,6 +17,7 @@ view: dt_claimcount_mgmt {
         ClosedType,
         FirstClose,
         FirstOpen,
+        monthlyClose,
         ActivityAge,
         Outstanding,
         policy,
@@ -45,6 +46,8 @@ view: dt_claimcount_mgmt {
                     ELSE 0 END AS FirstClose,
                 CASE WHEN CFA.claimactivitycode_id = 1 and od.claimcontrol_id is not NULL THEN 1
                     ELSE 0 END AS FirstOpen,
+                CASE WHEN CFA.claimactivitycode_id = 2 and cm.claimcontrol_id is not NULL THEN 1
+                    ELSE 0 END AS monthlyClose,
                 DATEDIFF(d, cc.Reported_Date, cfa.added_date) as ActivityAge,
                 CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
                         policy,
@@ -59,50 +62,59 @@ view: dt_claimcount_mgmt {
                   AND ClmFeat.claimfeature_num = CFA.claimfeature_num
                   AND claimactivitycode_id IN (1, 2)
                 LEFT OUTER JOIN
-                  (Select min(added_date) added_date, claimcontrol_id, claimant_num, claimfeature_num, sum(amount) amount
-                    from Claimtransaction
-                     WHERE amount > 0
-           and claimtransactioncategory_id = 2
-           group by claimcontrol_id, claimant_num, claimfeature_num) z
-                      ON z.claimcontrol_id = CFA.claimcontrol_id
-                      AND z.claimant_num = CFA.claimant_num
-                      AND z.claimfeature_num = CFA.claimfeature_num
-                      AND z.added_date <= cfa.Added_date
-        LEFT OUTER JOIN dbo.ClaimFeatureActivity od
-            ON cfa.claimcontrol_id = od.claimcontrol_id
-            AND cfa.claimant_num = od.claimant_num
-            AND cfa.claimfeature_num = od.claimfeature_num
-            AND cfa.num = od.num
-            AND od.claimactivitycode_id = 1
-            AND cfa.num = (SELECT MIN(num)
-              FROM dbo.ClaimFeatureActivity CCA
-              WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
-                AND cfa.claimant_num = CCA.claimant_num
-                AND cfa.claimfeature_num = CCA.claimfeature_num
-                --AND CFA.added_date = CCA.added_date
-                AND CCA.claimactivitycode_id = 1)
-                AND cc.claimcontrol_id >= -1
-                AND cc.policy_id >= -1
-        LEFT OUTER JOIN dbo.ClaimFeatureActivity cd
-            ON cfa.claimcontrol_id = cd.claimcontrol_id
-            AND cfa.claimant_num = cd.claimant_num
-            AND cfa.claimfeature_num = cd.claimfeature_num
-            AND cfa.num = cd.num
-            AND cd.claimactivitycode_id = 2
-            AND cfa.num = (SELECT MIN(num)
-              FROM dbo.ClaimFeatureActivity CCA
-              WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
-                AND cfa.claimant_num = CCA.claimant_num
-                AND cfa.claimfeature_num = CCA.claimfeature_num
-                --AND CFA.added_date = CCA.added_date
-                AND CCA.claimactivitycode_id = 2)
-                AND cc.claimcontrol_id >= -1
-                AND cc.policy_id >= -1
+                  ( SELECT min(added_date) added_date, claimcontrol_id, claimant_num, claimfeature_num, sum(amount) amount
+                    FROM Claimtransaction
+                    WHERE amount > 0
+                          AND claimtransactioncategory_id = 2
+                    GROUP BY claimcontrol_id, claimant_num, claimfeature_num) z
+                        ON z.claimcontrol_id = CFA.claimcontrol_id
+                        AND z.claimant_num = CFA.claimant_num
+                        AND z.claimfeature_num = CFA.claimfeature_num
+                        AND z.added_date <= cfa.Added_date
+                LEFT OUTER JOIN dbo.ClaimFeatureActivity od
+                      ON cfa.claimcontrol_id = od.claimcontrol_id
+                      AND cfa.claimant_num = od.claimant_num
+                      AND cfa.claimfeature_num = od.claimfeature_num
+                      AND cfa.num = od.num
+                      AND od.claimactivitycode_id = 1
+                      AND cfa.num = ( SELECT MIN(num)
+                                      FROM dbo.ClaimFeatureActivity CCA
+                                      WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
+                                            AND cfa.claimant_num = CCA.claimant_num
+                                            AND cfa.claimfeature_num = CCA.claimfeature_num
+                                            AND CCA.claimactivitycode_id = 1)
+                      AND cc.claimcontrol_id >= -1
+                      AND cc.policy_id >= -1
+                LEFT OUTER JOIN dbo.ClaimFeatureActivity cd
+                      ON cfa.claimcontrol_id = cd.claimcontrol_id
+                      AND cfa.claimant_num = cd.claimant_num
+                      AND cfa.claimfeature_num = cd.claimfeature_num
+                      AND cfa.num = cd.num
+                      AND cd.claimactivitycode_id = 2
+                      AND cfa.num = ( SELECT MIN(num)
+                                      FROM dbo.ClaimFeatureActivity CCA
+                                      WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
+                                      AND cfa.claimant_num = CCA.claimant_num
+                                      AND cfa.claimfeature_num = CCA.claimfeature_num
+                                      AND CCA.claimactivitycode_id = 2)
+                      AND cc.claimcontrol_id >= -1
+                      AND cc.policy_id >= -1
+                LEFT OUTER JOIN ( SELECT claimcontrol_id, Claimant_num, claimfeature_num,
+                                        month(added_date) ActionMonth, year(added_date) ActionYear,
+                                        MAX(Num) num
+                                  FROM ProductionBackup.dbo.ClaimFeatureActivity
+                                  WHERE claimactivitycode_id IN (1, 2)
+                                  GROUP BY claimcontrol_id, Claimant_num, claimfeature_num,
+                                          month(added_date), year(added_date)) cm
+                      ON cm.claimcontrol_id = cfa.claimcontrol_id
+                      AND cm.claimant_num = cfa.claimant_num
+                      AND cm.claimfeature_num = cfa.claimfeature_num
+                      AND cm.num = cfa.num
                 INNER JOIN PolicyImage PolImg WITH(NOLOCK)
-                  ON CC.policy_id = PolImg.policy_id
-                    AND CC.policyimage_num = PolImg.policyimage_num
+                      ON CC.policy_id = PolImg.policy_id
+                      AND CC.policyimage_num = PolImg.policyimage_num
                 INNER JOIN [Version] V WITH (NOLOCK)
-                  ON V.version_id = PolImg.version_id
+                      ON V.version_id = PolImg.version_id
 
                 UNION ALL
 
@@ -121,6 +133,7 @@ view: dt_claimcount_mgmt {
                 CC.claimcontrol_id,
                 'Reported' as ActionType,
                 NULL,
+                0,
                 0,
                 0,
                 0,
@@ -154,6 +167,7 @@ view: dt_claimcount_mgmt {
                 ClaimControl.claimcontrol_id,
                 'Payment' as ActionType,
                 NULL,
+                0,
                 0,
                 0,
                 0,
@@ -221,6 +235,12 @@ view: dt_claimcount_mgmt {
       sql: ${TABLE}.FirstOpen;;
     }
 
+    dimension: monthly_close {
+      hidden: yes
+      type: number
+      sql: ${TABLE}.monthlyClose;;
+    }
+
     measure: closed_count {
       label: "First Closed Pay"
       type: count
@@ -228,10 +248,24 @@ view: dt_claimcount_mgmt {
       drill_fields: [detail*]
     }
 
+    measure: unique_closed_count {
+      label: "Monthly Closed w/Pay"
+      type: count
+      filters: [action_type: "Closed", closed_type: "CWP", monthly_close: "1"]
+      drill_fields: [detail*]
+    }
+
     measure: closed_count1 {
       label: "First Closed w/o Pay"
       type: count
       filters: [action_type: "Closed", closed_type: "CWOP", first_close: "1"]
+      drill_fields: [detail*]
+    }
+
+    measure: unique_closed_count1 {
+      label: "Monthly Closed w/o Pay"
+      type: count
+      filters: [action_type: "Closed", closed_type: "CWOP", monthly_close: "1"]
       drill_fields: [detail*]
     }
 
@@ -391,6 +425,7 @@ view: dt_claimcount_mgmt {
         claimant_num,
         claimfeature_num,
         claim_feature.coverage_dscr,
+        closed_count3,
         v_claimtransaction_adjust2.indemnity_paid,
         v_claimtransaction_adjust2.indemnity_reserve
       ]
