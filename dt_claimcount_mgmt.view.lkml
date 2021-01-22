@@ -118,9 +118,10 @@ view: dt_claimcount_mgmt {
 
                 UNION ALL
 
+
                 Select
-                CAST(CAST(ClmFeat.Reported_date as Date) as Datetime) ProcessingDate,
-                cc.Reported_Date,
+                CAST(CAST(od.added_date as Date) as Datetime) ProcessingDate,
+                od.added_date Reported_Date,
                 Company_id,
                 LOB_id,
                 State_id,
@@ -139,18 +140,39 @@ view: dt_claimcount_mgmt {
                 0,
                 0 as Outstanding,
                 policy,
-                eff_date,
+                PolImg.eff_date,
                 0 as paid
-                FROM ClaimFeature ClmFeat WITH(NOLOCK)
-                INNER JOIN ClaimControl CC WITH(NOLOCK)
-                  ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
-                INNER JOIN PolicyImage PolImg WITH(NOLOCK)
-                  ON CC.policy_id = PolImg.policy_id
-                    AND CC.policyimage_num = PolImg.policyimage_num
-                INNER JOIN [Version] V WITH (NOLOCK)
-                  ON V.version_id = PolImg.version_id
+            FROM ClaimFeature ClmFeat WITH(NOLOCK)
+            INNER JOIN ProductionBackup.dbo.ClaimCoverage WITH(NOLOCK)
+        ON ClmFeat.claimcontrol_id  = ClaimCoverage.claimcontrol_id
+        AND ClmFeat.claimexposure_id = ClaimCoverage.claimexposure_id
+        AND ClmFeat.claimsubexposure_num = ClaimCoverage.claimsubexposure_num
+        AND ClmFeat.claimcoverage_num = ClaimCoverage.claimcoverage_num
+            INNER JOIN ClaimControl CC WITH(NOLOCK)
+                ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
+            INNER JOIN PolicyImage PolImg WITH(NOLOCK)
+                ON CC.policy_id = PolImg.policy_id
+                AND CC.policyimage_num = PolImg.policyimage_num
+            INNER JOIN [Version] V WITH (NOLOCK)
+                ON V.version_id = PolImg.version_id
+      LEFT OUTER JOIN dbo.ClaimFeatureActivity od
+        ON ClmFeat.claimcontrol_id = od.claimcontrol_id
+        AND ClmFeat.claimant_num = od.claimant_num
+        AND ClmFeat.claimfeature_num = od.claimfeature_num
+        AND od.claimactivitycode_id = 1
+        AND od.num = (SELECT MIN(num)
+            FROM dbo.ClaimFeatureActivity CCA
+            WHERE CCA.claimcontrol_id = ClmFeat.claimcontrol_id
+            AND ClmFeat.claimant_num = CCA.claimant_num
+            AND ClmFeat.claimfeature_num = CCA.claimfeature_num
+            --AND CFA.added_date = CCA.added_date
+            AND CCA.claimactivitycode_id = 1)
+        AND cc.claimcontrol_id >= -1
+        AND cc.policy_id >= -1
 
-      UNION ALL
+
+
+          UNION ALL
 
       Select
                 CAST(cf.added_date as Datetime) ProcessingDate,
