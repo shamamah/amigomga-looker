@@ -153,7 +153,7 @@ view: eop_claimcounts_triangle_accident_month {
             Select
                 CAST(CAST(od.added_date as Date) as Datetime) ProcessingDate,
                 od.added_date Reported_Date,
-        cc.Loss_date,
+                cc.Loss_date,
                 Company_id,
                 LOB_id,
                 State_id,
@@ -161,7 +161,7 @@ view: eop_claimcounts_triangle_accident_month {
                 PolImg.policy_id,
                 PolImg.Policyimage_num,
                 ClmFeat.coverage_dscr AS FeatDscr, --+ ' ' + ClmFeat.subcoverage_dscr
-        ClaimCoverage.coveragecode_id,
+                ClaimCoverage.coveragecode_id,
                 ClmFeat.claimfeature_num,
                 ClmFeat.Claimant_num,
                 CC.claimcontrol_id,
@@ -173,7 +173,7 @@ view: eop_claimcounts_triangle_accident_month {
                 0,
                 0 as Outstanding,
                 policy,
-        renewal_ver,
+                renewal_ver,
                 PolImg.eff_date,
                 0 as paid
             FROM ClaimFeature ClmFeat WITH(NOLOCK)
