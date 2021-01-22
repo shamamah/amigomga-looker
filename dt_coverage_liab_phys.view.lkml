@@ -49,7 +49,7 @@ view: dt_coverage_liab_phys {
     }
 
     dimension: liab_phys {
-      label: "Liab/Phys"
+      label: "Liab Only/Full Coverage"
       type: string
        sql: ${TABLE}.Liab_Phys ;;
     }
