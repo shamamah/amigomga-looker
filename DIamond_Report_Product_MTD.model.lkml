@@ -41,7 +41,7 @@ explore: dt_premiums {
     view_label: "Policy"
     type: inner
     fields: [policy_number, renewal_ver, new_renewal, eff_date, exp_date, premium_written,
-        policy_image.unique_count, transtype_id]
+        policy_image.unique_count]
     relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
@@ -53,6 +53,21 @@ explore: dt_premiums {
     sql_on: ${v_agency.agency_id} = ${policy_image.agency_id} ;;
     relationship: one_to_many
   }
+
+  # join: dt_agency_reporting {
+  #   view_label: "Agency"
+  #   type:  inner
+  #   sql_on:  ${dt_agency_reporting.agency_id} = ${v_agency.agency_id} ;;
+  #   relationship: one_to_one
+  # }
+
+  # join: dt_agencygroup_reporting {
+  #   view_label: "Agency"
+  #   type: left_outer
+  #   sql_on:  ${dt_agency_reporting.agencygroup_id} = ${dt_agencygroup_reporting.agencygroup_id} ;;
+  #   relationship: one_to_many
+  # }
+
 
   # join: dt_agency_location {
   #   view_label: "Agency"
@@ -67,6 +82,8 @@ explore: dt_premiums {
     relationship: one_to_many
     sql_on: ${policy_current_status.policycurrentstatus_id} = ${policy_image.policystatuscode_id};;
   }
+
+
   join: dt_quote_source {
     view_label: "Policy"
     type: inner
@@ -209,7 +226,7 @@ explore: dt_premiums {
       relationship: one_to_many
       sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} AND
                                         ${reinsurance_treaty.expiration_date}
-              AND ${reinsurance_treaty.treatylob} = ${policy_image.version_id} ;;
+              AND ${reinsurance_treaty.treatylob} = ${dt_premiums.lob_id} ;;
 
     }
 
