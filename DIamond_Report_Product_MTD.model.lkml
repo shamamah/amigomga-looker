@@ -40,7 +40,7 @@ explore: dt_premiums {
   join: policy_image {
     view_label: "Policy"
     type: inner
-    fields: [policy_number, renewal_ver, new_renewal, eff_date, exp_date, premium_written,
+    fields: [policy_number, renewal_ver, new_renewal, eff_date, eff_quarter, exp_date, premium_written,
         policy_image.unique_count]
     relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
