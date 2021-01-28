@@ -13,7 +13,6 @@ explore: eop_premium_triangle_policy_month {
     view_label: "Loss Amounts"
     type: left_outer
     relationship: many_to_one
-    # sql_on: ${eop_claims_triangle_quarter.itd_claims_primarykey} = ${eop_premium_triangle_quarter.eop_primary} ;;
     sql_on:
          ${eop_claims_triangle_policy_month.lag_month} = ${eop_premium_triangle_policy_month.lag_year_month}
         AND ${eop_claims_triangle_policy_month.policy_month} = ${eop_premium_triangle_policy_month.policy_month}
@@ -21,8 +20,6 @@ explore: eop_premium_triangle_policy_month {
         AND ${eop_claims_triangle_policy_month.lob_id} = ${eop_premium_triangle_policy_month.lob_id}
         AND ${eop_claims_triangle_policy_month.new_renewal} = ${eop_premium_triangle_policy_month.new_renewal}
         AND ${eop_claims_triangle_policy_month.treaty} = ${eop_premium_triangle_policy_month.treaty};;
-# --  ${eop_claims_triangle_treaty_quarter.accident_quarter} = ${eop_premium_triangle_treaty_quarter.trans_year_quarter}
-# --        AND ${eop_claims_triangle_treaty_quarter.lag_year_quarter} = ${eop_premium_triangle_treaty_quarter.lag_year_quarter}
 
     }
 
