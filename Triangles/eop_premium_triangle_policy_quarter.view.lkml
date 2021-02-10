@@ -95,7 +95,93 @@ view: eop_premium_triangle_policy_quarter {
                 renewal_ver,
                 unit_num,
                 policy,
-                emp.eff_date) xx
+                emp.eff_date
+
+                    UNION ALL
+
+              SELECT
+                  2021,
+                  1,
+                  V.company_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+  --                Policyimage_num,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date,
+                  0,
+                  0,
+                  0
+              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+              INNER JOIN [Version] V WITH(NOLOCK)
+                ON V.version_id = EMP.version_id
+              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+                ON EMP.coveragecode_id = CCV.coveragecode_id
+                AND V.version_id = CCV.version_id
+
+              WHERE
+              EMP.year_month_key = '202012'
+              GROUP BY
+                  EMP.year,
+                  EMP.month,
+                  V.company_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date
+
+    UNION ALL
+
+              SELECT
+                  2021,
+                  2,
+                  V.company_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+  --                Policyimage_num,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date,
+                  0,
+                  0,
+                  0
+              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+              INNER JOIN [Version] V WITH(NOLOCK)
+                ON V.version_id = EMP.version_id
+              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+                ON EMP.coveragecode_id = CCV.coveragecode_id
+                AND V.version_id = CCV.version_id
+              WHERE
+              EMP.year_month_key = '202012'
+              GROUP BY
+                  EMP.year,
+                  EMP.month,
+                  V.company_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+            --            Policyimage_num,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date
+
+                  ) xx
          ON t.lob_id = xx.lob_id
             AND xx.eff_date between t.eff_date and t.exp_date
          INNER JOIN LOB l
