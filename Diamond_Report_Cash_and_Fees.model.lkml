@@ -35,6 +35,22 @@ explore: dt_cash_and_fees {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: policy_image_name_link {
+    type: left_outer
+    fields: []
+    relationship: one_to_one
+    sql_on: ${policy_image_name_link.policy_id} = ${policy_image.policy_id}
+          AND ${policy_image_name_link.policyimage_num} = ${policy_image.policyimage_num};;
+  }
+
+  join: name {
+    view_label: "Insured"
+    fields: [display_name, first_name, last_name, middle_name]
+    type: inner
+    relationship: one_to_one
+    sql_on: ${policy_image_name_link.name_id} = ${name.name_id}
+     ;;
+  }
   join: coverage {
     view_label: "Coverage"
     type: inner
