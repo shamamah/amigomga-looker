@@ -13,6 +13,7 @@ view: eop_claims_triangle_treaty_quarter {
               CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END as caption,
     --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
               CASE WHEN policyimage.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+              policyimage.Renewal_ver,
               Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
     --          PolicyImage.policy_id,
     --          PolicyImage.Policyimage_num,
@@ -88,6 +89,7 @@ view: eop_claims_triangle_treaty_quarter {
                 CASE WHEN V.lob_id = 1 AND CoverageCodeVersion.caption = 'UM PD' THEN 'UM/UIM BI' ELSE CoverageCodeVersion.caption END,
       --          ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
                 CASE WHEN policyimage.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+                policyimage.Renewal_ver,
                 Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
              ;;
   }
@@ -160,6 +162,12 @@ view: eop_claims_triangle_treaty_quarter {
     type: string
     hidden: yes
     sql: ${TABLE}.caption ;;
+  }
+
+  dimension: renewal_ver {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.renewal_ver ;;
   }
 
   # dimension: liab_full {

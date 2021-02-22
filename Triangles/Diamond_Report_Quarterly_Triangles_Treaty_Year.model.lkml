@@ -20,7 +20,9 @@ explore: eop_premium_triangle_treaty_quarter {
         AND ${eop_claims_triangle_treaty_quarter.coveragecode_id} = ${eop_premium_triangle_treaty_quarter.coveragecode_id}
         AND ${eop_claims_triangle_treaty_quarter.lob_id} = ${eop_premium_triangle_treaty_quarter.lob_id}
         AND ${eop_claims_triangle_treaty_quarter.new_renewal} = ${eop_premium_triangle_treaty_quarter.new_renewal}
-        AND ${eop_claims_triangle_treaty_quarter.treaty} = ${eop_premium_triangle_treaty_quarter.treaty};;
+        AND ${eop_claims_triangle_treaty_quarter.treaty} = ${eop_premium_triangle_treaty_quarter.treaty}
+        AND ${eop_claims_triangle_treaty_quarter.renewal_ver} = ${eop_premium_triangle_treaty_quarter.renewal_ver}
+;;
     }
 
   join: eop_claimcounts_triangle_treaty_policy_quarter {

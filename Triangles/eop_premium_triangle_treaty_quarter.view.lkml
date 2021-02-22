@@ -14,6 +14,7 @@ view: eop_premium_triangle_treaty_quarter {
             caption,
      --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
             CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+            xx.Renewal_ver,
             Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
             SUM(TotalEarnedPremium) as EarnedPremium,
             SUM(TotalWrittenPremium) as WrittenPremium,
@@ -210,6 +211,7 @@ view: eop_premium_triangle_treaty_quarter {
               caption,
   --            ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
               CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+              xx.renewal_ver,
               Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
  ;;
   }
@@ -312,6 +314,12 @@ view: eop_premium_triangle_treaty_quarter {
     label: "Treaty Name"
     type: string
     sql: ${TABLE}.Treaty ;;
+  }
+
+  dimension: renewal_ver {
+    label: "RenewalVersion"
+    type: string
+    sql: ${TABLE}.renewal_ver ;;
   }
 
   dimension: new_renewal {
