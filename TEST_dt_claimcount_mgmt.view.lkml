@@ -195,6 +195,13 @@ view: test_dt_claimcount_mgmt {
     sql: ${TABLE}.lossdate ;;
   }
 
+  dimension_group: reporteddate {
+    label: "Reported Date"
+    type: time
+    timeframes: [date,week,month,quarter,year]
+    sql: ${TABLE}.reported_date ;;
+  }
+
   dimension: company_id {
     type: number
     hidden: yes
