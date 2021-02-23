@@ -2,8 +2,8 @@ view: test_dt_claimcount_mgmt {
   derived_table: {
     sql: select
             ID,
-            cc.StatusDate as ProcessingDate,
-            rpd.statusdate as Reported_Date,
+            CASE WHEN cc.StatusDate < '2019-07-01' THEN '2019-07-01' ELSE cc.StatusDate END as ProcessingDate,
+            CASE WHEN rpd.statusdate < '2019-07-01' THEN '2019-07-01' ELSE rpd.statusdate END as Reported_Date,
             CompanyID as Company_id,
             LOBID as LOB_id,
             StateID as State_id,
@@ -23,7 +23,7 @@ view: test_dt_claimcount_mgmt {
             DATEDIFF(d, rpd.statusdate, cc.statusdate) as ActivityAge,
             Outstanding,
             eff_date,
-            YEAR(LossDate)*100+Month(LossDate) as LossMonth,
+            CASE WHEN LossDate < '2019-07-01' THEN '2019-07-01' ELSE LossDate END as Lossdate,
             COALESCE(ct.Amount, cf.indemnity_paid, 0) as paid
       FROM customer_reports.dbo.claimcounts cc
       -- Reported Date
@@ -187,6 +187,12 @@ view: test_dt_claimcount_mgmt {
     type: time
     timeframes: [date,week,month,quarter,year]
     sql: ${TABLE}.processingdate ;;
+  }
+
+  dimension_group: lossdate {
+    type: time
+    timeframes: [date,week,month,quarter,year]
+    sql: ${TABLE}.lossdate ;;
   }
 
   dimension: company_id {
