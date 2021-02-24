@@ -122,6 +122,14 @@ view: test_dt_claimcount_mgmt {
     drill_fields: [detail*]
   }
 
+  measure: all_closed {
+    label: "All Closed"
+    type: count
+    filters: [action_type: "closed"]
+    drill_fields: [detail*]
+  }
+
+
   measure: closed_count {
     label: "Closed w/Pay"
     type: count
@@ -306,14 +314,11 @@ view: test_dt_claimcount_mgmt {
 
   set: detail {
     fields: [
-      eff_date,
+      reporteddate_date,
+      lossdate_date,
       claim_number,
       feat_dscr,
-      claimant_num,
-      claimfeature_num,
-      claim_feature.coverage_dscr,
       closed_count3,
-      v_claimtransaction_adjust2.indemnity_paid,
       v_claimtransaction_adjust2.indemnity_reserve
     ]
   }
