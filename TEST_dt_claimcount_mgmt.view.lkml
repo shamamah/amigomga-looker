@@ -302,7 +302,7 @@ view: test_dt_claimcount_mgmt {
   measure: outstanding {
     type: sum
     sql: ${TABLE}.Outstanding ;;
-    drill_fields: [detail*]
+    # drill_fields: [detail*]
 
   }
 
@@ -317,6 +317,9 @@ view: test_dt_claimcount_mgmt {
       reporteddate_date,
       lossdate_date,
       claim_number,
+      claimant_num,
+      action_type,
+      processingdate_date,
       feat_dscr,
       closed_count3,
       v_claimtransaction_adjust2.indemnity_reserve
