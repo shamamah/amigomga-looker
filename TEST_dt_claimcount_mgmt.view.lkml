@@ -79,7 +79,7 @@ view: test_dt_claimcount_mgmt {
 
   dimension: action_type {
     label: "Feature Status"
-    hidden:  yes
+    # hidden:  yes
     type: string
     sql: ${TABLE}.ActionType;;
   }
