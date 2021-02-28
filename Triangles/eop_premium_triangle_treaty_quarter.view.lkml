@@ -263,11 +263,11 @@ view: eop_premium_triangle_treaty_quarter {
     sql: ${TABLE}.lag_quarter;;
   }
 
-  dimension: trans_year_quarter {
-    label: "_Trans Year_QTR (YYYYQ)"
-    type: string
-    sql: ${TABLE}.trans_quarter ;;
-  }
+  # dimension: trans_year_quarter {
+  #   label: "_Trans Year_QTR (YYYYQ)"
+  #   type: string
+  #   sql: ${TABLE}.trans_quarter ;;
+  # }
 
   dimension: policy_quarter {
     label: "Policy Quarter"

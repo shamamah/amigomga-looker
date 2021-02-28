@@ -111,11 +111,11 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
     sql: CONCAT(${policy_quarter},'_',${lag_quarter},'_',${treaty_quarter},'_',${coveragecode_id},'_',${new_ren},'_',${lob_id},'_',${treaty},'_',${renewal_version}) ;;
   }
 
-  dimension: trans_quarter {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.trans_quarter ;;
-  }
+  # dimension: trans_quarter {
+  #   type: number
+  #   hidden: yes
+  #   sql: ${TABLE}.trans_quarter ;;
+  # }
 
   dimension: lag_quarter {
     type: number
@@ -219,7 +219,7 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
 
   set: detail {
     fields: [
-      trans_quarter,
+      treaty_quarter,
       lag_quarter,
       policy_quarter,
       company_id,

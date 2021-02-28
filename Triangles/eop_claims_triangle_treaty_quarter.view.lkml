@@ -132,12 +132,12 @@ view: eop_claims_triangle_treaty_quarter {
     sql: ${TABLE}.treaty_quarter;;
   }
 
-  dimension: trans_quarter {
-    label: "Trans Quarter"
-    hidden: yes
-    type: string
-    sql: ${TABLE}.trans_quarter;;
-  }
+  # dimension: trans_quarter {
+  #   label: "Trans Quarter"
+  #   hidden: yes
+  #   type: string
+  #   sql: ${TABLE}.trans_quarter;;
+  # }
 
   dimension: state_id {
     type: number
