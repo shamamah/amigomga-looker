@@ -1,10 +1,10 @@
 view: eop_claimcounts_triangle_treaty_policy_month {
   derived_table: {
-    sql:  SELECT DATEDIFF(m, t.eff_date, ProcessingDate) as treaty_month,
+    sql:  SELECT    treaty_month,
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END as policy_month,
             DATEDIFF(m, t.eff_date, ProcessingDate)  -
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END as lag_month,
-            DATEDIFF(m, '2019-05-01', ProcessingDate) as trans_month,
+--            DATEDIFF(m, '2019-05-01', ProcessingDate) as trans_month,
             company_id,
             state_id,
             z.lob_id,
@@ -13,265 +13,95 @@ view: eop_claimcounts_triangle_treaty_policy_month {
         --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
             CASE WHEN renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
             Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
-            Sum(CASE WHEN ActionType = 'Reported' THEN 1 ELSE 0 END) as Reported,
-            Sum(MonthlyClose) as Closed,
-            Sum(CASE WHEN ClosedType = 'CWOP' and MonthlyClose = 1 THEN 1 ELSE 0 END) as ClosedNoPay,
-            Sum(CASE WHEN ClosedType = 'CWP' and MonthlyClose = 1 THEN 1 ELSE 0 END) as ClosedPay,
+            Sum(CASE WHEN ActionType = 'Open' THEN 1 ELSE 0 END) as Reported,
+      Sum(CASE WHEN ActionType = 'Reopen' THEN 1 ELSE 0 END) as Reopen,
+            Sum(CASE WHEN ActionType = 'Closed' THEN 1 ELSE 0 END) as Closed,
+            Sum(CASE WHEN ClosedType = 'CWOP' and ActionType = 'Closed' THEN 1 ELSE 0 END) as ClosedNoPay,
+            Sum(CASE WHEN ClosedType = 'CWP' and ActionType = 'Closed' THEN 1 ELSE 0 END) as ClosedPay,
             SUM(Outstanding) as Outstanding
-
-
-     From (Select row_number() over (order by claim_number, claimfeature_num, Claimant_num, ProcessingDate) as id,
-            ProcessingDate,
-            Reported_date,
-            Loss_date,
-            Company_id,
-            LOB_id,
-            State_id,
-            claim_number,
+FROM  (select
+            ID,
+      PeriodTrans as Treaty_Month,
+            CASE WHEN cc.StatusDate < '2019-07-01' THEN '2019-07-01' ELSE cc.StatusDate END as ProcessingDate,
+            CASE WHEN rpd.statusdate < '2019-07-01' THEN '2019-07-01' ELSE rpd.statusdate END as Reported_Date,
+            CompanyID as Company_id,
+            LOBID as LOB_id,
+            StateID as State_id,
+            ClaimNumber as claim_number,
             policy_id,
             Policyimage_num,
-            FeatDscr,
-            coveragecode_id,
-            claimfeature_num,
-            Claimant_num,
-            claimcontrol_id,
-            ActionType,
-            ClosedType,
-            FirstClose,
-            FirstOpen,
-            monthlyClose,
-            ActivityAge,
+            Coverage as FeatDscr,
+      Coverage_ID as coveragecode_id,
+            cc.claimfeature_num,
+            cc.Claimant_num,
+            cc.claimcontrol_id,
+            FeatureStatus as ActionType,
+            PaidStatus as ClosedType,
+            CASE WHEN cl1.ClaimControl_ID is not null THEN 1 ELSE 0 end as FirstClose,
+            CASE WHEN cl2.ClaimControl_ID is not null THEN 1 ELSE 0 end as LastClose,
+            CASE WHEN rpd.ClaimControl_ID is not NULL then 1 else 0 end as firstopen,
+            NULL as monthlyClose,
+            DATEDIFF(d, rpd.statusdate, cc.statusdate) as ActivityAge,
             Outstanding,
-            policy,
-            renewal_ver,
             eff_date,
-            paid
-            FROM (Select
-                    CAST(cfa.Added_date as Datetime) ProcessingDate,
-                    cc.Reported_Date,
-                    cc.Loss_Date,
-                    Company_id,
-                    LOB_id,
-                    State_id,
-                    cc.claim_number,
-                    PolImg.policy_id,
-                    PolImg.Policyimage_num,
-                    ClmFeat.coverage_dscr AS FeatDscr, --+ ' ' + ClmFeat.subcoverage_dscr
-                    ClaimCoverage.coveragecode_id,
-                    CFA.claimfeature_num,
-                    CFA.Claimant_num,
-                    cc.claimcontrol_id,
-                    CASE WHEN CFA.claimactivitycode_id = 2  THEN 'Closed'
-                            ELSE 'Open' END as ActionType,
-                    CASE WHEN CFA.claimactivitycode_id = 2 THEN
-                        CASE WHEN z.claimcontrol_id is NULL THEN 'CWOP'
-                            ELSE 'CWP' END
-                    END as ClosedType,
-                    CASE WHEN CFA.claimactivitycode_id = 2 and cd.claimcontrol_id is not NULL THEN 1
-                        ELSE 0 END AS FirstClose,
-                    CASE WHEN CFA.claimactivitycode_id = 1 and od.claimcontrol_id is not NULL THEN 1
-                        ELSE 0 END AS FirstOpen,
-                    CASE WHEN CFA.claimactivitycode_id = 2 and cm.claimcontrol_id is not NULL THEN 1
-                        ELSE 0 END AS monthlyClose,
-                    DATEDIFF(d, cc.Reported_Date, cfa.added_date) as ActivityAge,
-                    CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
-                    policy,
-          renewal_ver,
-                    PolImg.eff_date,
-                    0 as paid
-            FROM ClaimFeature ClmFeat WITH(NOLOCK)
-      INNER JOIN ProductionBackup.dbo.ClaimCoverage WITH(NOLOCK)
-          ON ClmFeat.claimcontrol_id  = ClaimCoverage.claimcontrol_id
-          AND ClmFeat.claimexposure_id = ClaimCoverage.claimexposure_id
-          AND ClmFeat.claimsubexposure_num = ClaimCoverage.claimsubexposure_num
-          AND ClmFeat.claimcoverage_num = ClaimCoverage.claimcoverage_num
-            INNER JOIN ClaimControl CC WITH(NOLOCK)
-          ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
-            INNER JOIN ClaimFeatureActivity CFA WITH(NOLOCK)
-          ON ClmFeat.claimcontrol_id = CFA.claimcontrol_id
-          AND ClmFeat.claimant_num = CFA.claimant_num
-          AND ClmFeat.claimfeature_num = CFA.claimfeature_num
-          AND claimactivitycode_id IN (1, 2)
-            LEFT OUTER JOIN
-                      (Select min(added_date) added_date, claimcontrol_id, claimant_num, claimfeature_num, sum(amount) amount
-                       FROM Claimtransaction
-                       WHERE amount > 0
-              and claimtransactioncategory_id = 2
-             GROUP by claimcontrol_id, claimant_num, claimfeature_num) z
-               ON z.claimcontrol_id = CFA.claimcontrol_id
-                AND z.claimant_num = CFA.claimant_num
-                AND z.claimfeature_num = CFA.claimfeature_num
-                AND z.added_date <= cfa.Added_date
-            LEFT OUTER JOIN dbo.ClaimFeatureActivity od
-          ON cfa.claimcontrol_id = od.claimcontrol_id
-          AND cfa.claimant_num = od.claimant_num
-          AND cfa.claimfeature_num = od.claimfeature_num
-          AND cfa.num = od.num
-          AND od.claimactivitycode_id = 1
-          AND cfa.num = (SELECT MIN(num)
-                  FROM dbo.ClaimFeatureActivity CCA
-                  WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
-                  AND cfa.claimant_num = CCA.claimant_num
-                  AND cfa.claimfeature_num = CCA.claimfeature_num
-                  --AND CFA.added_date = CCA.added_date
-                  AND CCA.claimactivitycode_id = 1)
-          AND cc.claimcontrol_id >= -1
-          AND cc.policy_id >= -1
-           LEFT OUTER JOIN dbo.ClaimFeatureActivity cd
-          ON cfa.claimcontrol_id = cd.claimcontrol_id
-          AND cfa.claimant_num = cd.claimant_num
-          AND cfa.claimfeature_num = cd.claimfeature_num
-          AND cfa.num = cd.num
-          AND cd.claimactivitycode_id = 2
-          AND cfa.num = (SELECT MIN(num)
-                  FROM dbo.ClaimFeatureActivity CCA
-                  WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
-                  AND cfa.claimant_num = CCA.claimant_num
-                  AND cfa.claimfeature_num = CCA.claimfeature_num
-                  --AND CFA.added_date = CCA.added_date
-                  AND CCA.claimactivitycode_id = 2)
-          AND cc.claimcontrol_id >= -1
-          AND cc.policy_id >= -1
-      LEFT OUTER JOIN (Select
-          claimcontrol_id, Claimant_num, claimfeature_num,
-          month(added_date) ActionMonth, year(added_date) ActionYear, MAX(Num) num
-          FROM ProductionBackup.dbo.ClaimFeatureActivity
-            WHERE claimactivitycode_id IN (1, 2)
-          GROUP BY claimcontrol_id, Claimant_num, claimfeature_num,
-          month(added_date), year(added_date)) cm
-            ON cm.claimcontrol_id = cfa.claimcontrol_id
-            AND cm.claimant_num = cfa.claimant_num
-            AND cm.claimfeature_num = cfa.claimfeature_num
-            AND cm.num = cfa.num
-      INNER JOIN PolicyImage PolImg WITH(NOLOCK)
-          ON CC.policy_id = PolImg.policy_id
-          AND CC.policyimage_num = PolImg.policyimage_num
-      INNER JOIN [Version] V WITH (NOLOCK)
-          ON V.version_id = PolImg.version_id
+      renewal_ver,
+            CASE WHEN LossDate < '2019-07-01' THEN '2019-07-01' ELSE LossDate END as Lossdate,
+            COALESCE(ct.Amount, cf.indemnity_paid, 0) as paid
+      FROM customer_reports.dbo.claimcounts cc
+      -- Reported Date
+      LEFT JOIN (select claimfeature_num, Claimant_num, claimcontrol_id, statusdate
+              FROM customer_reports.dbo.ClaimCounts where FeatureStatus = 'Open') rpd
+          ON cc.claimfeature_num = rpd.claimfeature_num
+            and cc.Claimant_num = rpd.Claimant_num
+            and cc.claimcontrol_id = rpd.claimcontrol_id
+      -- First Closed
+      LEFT JOIN (select claimfeature_num, Claimant_num, claimcontrol_id, min(statusdate) mindate
+                from customer_reports.dbo.claimcounts where FeatureStatus = 'Closed'
+                group by claimfeature_num, Claimant_num, claimcontrol_id) cl1
+              ON cc.claimfeature_num = cl1.claimfeature_num
+              and cc.Claimant_num = cl1.Claimant_num
+              and cc.claimcontrol_id = cl1.claimcontrol_id
+              and cc.StatusDate = cl1.mindate
+      -- Last Close
+      LEFT JOIN (select claimfeature_num, Claimant_num, claimcontrol_id, max(statusdate) maxdate
+                from customer_reports.dbo.claimcounts where FeatureStatus = 'Closed'
+                group by claimfeature_num, Claimant_num, claimcontrol_id) cl2
+              ON cc.claimfeature_num = cl2.claimfeature_num
+              and cc.Claimant_num = cl2.Claimant_num
+              and cc.claimcontrol_id = cl2.claimcontrol_id
+              and cc.StatusDate = cl2.maxdate
+      -- Payment Data for CWP's
+      LEFT JOIN ClaimfeatureEOD eod
+        ON cc.ClaimControl_ID = eod.claimcontrol_id
+        AND cc.Claimant_num = eod.claimant_num
+        and cc.ClaimFeature_num = eod.claimfeature_num
+        and YEAR(cc.StatusDate)*100+Month(cc.StatusDate) = eod.year_month_key
+        AND eod.claimeoplevel_id = 1
+      LEFT JOIN ClaimFinancials cf
+        ON cf.claimcontrol_id = eod.claimcontrol_id
+        AND cf.claimfinancials_num = eod.claimfinancials_num
+      LEFT JOIN (Select YEAR(check_date)*100+MONTH(Check_date) as Trans_Month,
+          claimcontrol_id, claimant_num, claimfeature_num, SUM(Amount) as Amount
+            from claimtransaction
+            where claimtransactioncategory_id = 2
+            and check_number <> ''
+            and claimtransactionstatus_id = 1
+            group by YEAR(check_date)*100+MONTH(Check_date), claimcontrol_id,
+              claimant_num, claimfeature_num) ct
+              ON cc.claimcontrol_id = ct.claimcontrol_id
+              AND cc.claimant_num = ct.claimant_num
+              AND cc.claimfeature_num = ct.claimfeature_num
+              AND Year(cc.StatusDate)*100+Month(cc.statusdate) = ct.Trans_Month) z
+      JOIN customer_reports.dbo.treaty t ON
+        t.lob_id = z.lob_id
+        AND z.eff_date between t.eff_date and t.exp_date
 
-                    UNION ALL
-
-                    Select
-                CAST(CAST(od.added_date as Date) as Datetime) ProcessingDate,
-                od.added_date Reported_Date,
-                cc.Loss_date,
-                Company_id,
-                LOB_id,
-                State_id,
-                cc.claim_number,
-                PolImg.policy_id,
-                PolImg.Policyimage_num,
-                ClmFeat.coverage_dscr AS FeatDscr, --+ ' ' + ClmFeat.subcoverage_dscr
-                ClaimCoverage.coveragecode_id,
-                ClmFeat.claimfeature_num,
-                ClmFeat.Claimant_num,
-                CC.claimcontrol_id,
-                'Reported' as ActionType,
-                NULL,
-                0,
-                0,
-                0,
-                0,
-                0 as Outstanding,
-                policy,
-                renewal_ver,
-                PolImg.eff_date,
-                0 as paid
-            FROM ClaimFeature ClmFeat WITH(NOLOCK)
-            INNER JOIN ProductionBackup.dbo.ClaimCoverage WITH(NOLOCK)
-        ON ClmFeat.claimcontrol_id  = ClaimCoverage.claimcontrol_id
-        AND ClmFeat.claimexposure_id = ClaimCoverage.claimexposure_id
-        AND ClmFeat.claimsubexposure_num = ClaimCoverage.claimsubexposure_num
-        AND ClmFeat.claimcoverage_num = ClaimCoverage.claimcoverage_num
-            INNER JOIN ClaimControl CC WITH(NOLOCK)
-                ON ClmFeat.claimcontrol_id = CC.claimcontrol_id
-            INNER JOIN PolicyImage PolImg WITH(NOLOCK)
-                ON CC.policy_id = PolImg.policy_id
-                AND CC.policyimage_num = PolImg.policyimage_num
-            INNER JOIN [Version] V WITH (NOLOCK)
-                ON V.version_id = PolImg.version_id
-      LEFT OUTER JOIN dbo.ClaimFeatureActivity od
-        ON ClmFeat.claimcontrol_id = od.claimcontrol_id
-        AND ClmFeat.claimant_num = od.claimant_num
-        AND ClmFeat.claimfeature_num = od.claimfeature_num
-        AND od.claimactivitycode_id = 1
-        AND od.num = (SELECT MIN(num)
-            FROM dbo.ClaimFeatureActivity CCA
-            WHERE CCA.claimcontrol_id = ClmFeat.claimcontrol_id
-            AND ClmFeat.claimant_num = CCA.claimant_num
-            AND ClmFeat.claimfeature_num = CCA.claimfeature_num
-            --AND CFA.added_date = CCA.added_date
-            AND CCA.claimactivitycode_id = 1)
-        AND cc.claimcontrol_id >= -1
-        AND cc.policy_id >= -1
-
-          UNION ALL
-
-          Select
-                    CAST(cf.added_date as Datetime) ProcessingDate,
-                    cf.added_date as Reported_Date,
-          loss_date,
-                    Company_id,
-                    LOB_id,
-                    State_id,
-                    ClaimControl.claim_number,
-                    PolicyImage.policy_id,
-                    PolicyImage.Policyimage_num,
-                    ClmFeat.coverage_dscr,-- + ' ' + ClmFeat.subcoverage_dscr AS FeatDscr,
-          ClaimCoverage.coveragecode_id,
-                    ClmFeat.claimfeature_num,
-                    ClmFeat.Claimant_num,
-                    ClaimControl.claimcontrol_id,
-                    'Payment' as ActionType,
-                    NULL,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0 as Outstanding,
-                    policy,
-          renewal_ver,
-                    PolicyImage.eff_date,
-                    indemnity_paid as paid
-                 FROM ProductionBackup.dbo.ClaimFeatureEOD CFE WITH(NOLOCK)
-            INNER JOIN ProductionBackup.dbo.ClaimFeature ClmFeat WITH(NOLOCK)
-              ON CFE.claimcontrol_id = ClmFeat.claimcontrol_id
-                AND  CFE.claimant_num = ClmFeat.claimant_num
-                AND CFE.claimfeature_num = ClmFeat.claimfeature_num
-            INNER JOIN ProductionBackup.dbo.ClaimCoverage WITH(NOLOCK)
-              ON ClmFeat.claimcontrol_id  = ClaimCoverage.claimcontrol_id
-                AND ClmFeat.claimexposure_id = ClaimCoverage.claimexposure_id
-                AND ClmFeat.claimsubexposure_num = ClaimCoverage.claimsubexposure_num
-                AND ClmFeat.claimcoverage_num = ClaimCoverage.claimcoverage_num
-            INNER JOIN ProductionBackup.dbo.ClaimControl WITH(NOLOCK)
-              ON ClmFeat.claimcontrol_id = ClaimControl.claimcontrol_id
-            INNER JOIN ProductionBackup.dbo.PolicyImage WITH(NOLOCK)
-              ON ClaimControl.policy_id = PolicyImage.policy_id
-                AND ClaimControl.policyimage_num = PolicyImage.policyimage_num
-            LEFT OUTER JOIN ProductionBackup.dbo.PackagePart PP WITH (NOLOCK)
-              ON ClaimControl.policy_id = PP.policy_id
-                AND ClaimControl.policyimage_num = PP.policyimage_num
-                AND ClaimControl.packagepart_num = PP.packagepart_num
-            INNER JOIN ProductionBackup.dbo.CoverageCodeVersion WITH(NOLOCK)
-              ON ClaimCoverage.coveragecode_id = CoverageCodeVersion.coveragecode_id
-                AND CoverageCodeVersion.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
-            INNER JOIN ProductionBackup.dbo.ClaimFinancials CF WITH(NOLOCK)
-              ON CFE.claimcontrol_id = CF.claimcontrol_id
-              AND CFE.claimfinancials_num = CF.claimfinancials_num
-            INNER JOIN ProductionBackup.dbo.[Version] V WITH(NOLOCK)
-              ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
-            WHERE CFE.claimeoplevel_id = 3
-            and cf.indemnity_paid <> 0) a) z
-  LEFT JOIN Customer_reports.dbo.Treaty t
-    ON z.eff_date between t.eff_date and t.exp_date
-    AND z.lob_id = t.lob_id
- -- WHERE z.loss_date > z.eff_date
     GROUP BY
-        DATEDIFF(m, t.eff_date, ProcessingDate),
+     Treaty_Month,
     CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
     DATEDIFF(m, t.eff_date, ProcessingDate)  -
     CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
-    DATEDIFF(m, '2019-05-01', ProcessingDate),
+--    DATEDIFF(m, '2019-05-01', ProcessingDate),
         company_id,
         state_id,
         z.lob_id,
@@ -287,14 +117,14 @@ view: eop_claimcounts_triangle_treaty_policy_month {
     type: string
     hidden: yes
     primary_key: yes
-    sql: CONCAT(${policy_month},'_',${trans_month},'_',${lag_month},'_',${treaty_month},'_',${coveragecode_id},'_',${new_ren},'_',${lob_id}) ;;
+    sql: CONCAT(${policy_month},'_',${lag_month},'_',${treaty_month},'_',${coveragecode_id},'_',${new_ren},'_',${lob_id}) ;;
   }
 
-  dimension: trans_month {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.trans_month ;;
-  }
+  # dimension: trans_month {
+  #   type: number
+  #   hidden: yes
+  #   sql: ${TABLE}.trans_month ;;
+  # }
 
   dimension: lag_month {
     type: number
@@ -380,9 +210,21 @@ view: eop_claimcounts_triangle_treaty_policy_month {
     drill_fields: [detail*]
   }
 
+  measure: outstanding {
+    type: sum
+    sql: ${TABLE}.outstanding ;;
+    drill_fields: [detail*]
+  }
+
+  measure: reopen {
+    type: sum
+    sql: ${TABLE}.reopen;;
+    drill_fields: [detail*]
+  }
+
   set: detail {
     fields: [
-      trans_month,
+      treaty_month,
       lag_month,
       policy_month,
       company_id,
