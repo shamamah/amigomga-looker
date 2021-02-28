@@ -36,6 +36,8 @@ explore: eop_premium_triangle_treaty_quarter {
         AND ${eop_claimcounts_triangle_treaty_policy_quarter.coveragecode_id} = ${eop_premium_triangle_treaty_quarter.coveragecode_id}
         AND ${eop_claimcounts_triangle_treaty_policy_quarter.lob_id} = ${eop_premium_triangle_treaty_quarter.lob_id}
         AND ${eop_claimcounts_triangle_treaty_policy_quarter.new_ren} = ${eop_premium_triangle_treaty_quarter.new_renewal}
-        AND ${eop_claimcounts_triangle_treaty_policy_quarter.treaty} = ${eop_premium_triangle_treaty_quarter.treaty};;
+        AND ${eop_claimcounts_triangle_treaty_policy_quarter.treaty} = ${eop_premium_triangle_treaty_quarter.treaty}
+        AND ${eop_claimcounts_triangle_treaty_policy_quarter.renewal_version} = ${eop_premium_triangle_treaty_quarter.renewal_ver}
+;;
     }
   }
