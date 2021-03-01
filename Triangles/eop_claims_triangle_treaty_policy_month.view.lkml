@@ -77,7 +77,7 @@ view: eop_claims_triangle_treaty_policy_month {
                 AND PolicyImage.eff_date between t.eff_date and t.exp_date
       WHERE
       CFE.claimeoplevel_id = 3
-    --and loss_date < policyimage.eff_date
+      AND CFE.year_month_key < YEAR(DATEADD(mm, DATEDIFF(mm, 0, GETDATE()), 0))*100+MONTH(DATEADD(mm, DATEDIFF(mm, 0, GETDATE()), 0))
       GROUP BY
         DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01'),
         CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) END,

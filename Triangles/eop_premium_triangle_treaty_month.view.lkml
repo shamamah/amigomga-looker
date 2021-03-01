@@ -58,7 +58,7 @@ view: eop_premium_triangle_treaty_month {
                   emp.eff_date
 
 
-                UNION ALL
+      /*          UNION ALL
 
                 SELECT
                   YEAR(GETDATE()-1) as year,
@@ -69,7 +69,7 @@ view: eop_premium_triangle_treaty_month {
                   EMP.coveragecode_id,
                   CCV.caption,
                   policy_id,
-       --           Policyimage_num,
+      --           Policyimage_num,
                   renewal_ver,
                   unit_num,
                   policy,
@@ -95,7 +95,7 @@ view: eop_premium_triangle_treaty_month {
                   unit_num,
                   policy,
                   emp.eff_date
-
+    */
                       UNION ALL
 
               SELECT
