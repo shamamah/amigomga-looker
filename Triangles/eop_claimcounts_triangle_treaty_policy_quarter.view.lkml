@@ -6,7 +6,7 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date)  / 3  END as policy_quarter,
             DATEDIFF(m, t.eff_date, ProcessingDate)  / 3 -
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) / 3   END as lag_quarter,
---            DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  as trans_quarter,
+            DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  as trans_quarter,
           company_id,
           state_id,
           z.lob_id,
@@ -81,16 +81,22 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
     JOIN customer_reports.dbo.treaty t ON
       t.lob_id = z.lob_id
       AND z.eff_date between t.eff_date and t.exp_date
-    JOIN customer_reports.dbo.TreatyQuarter a ON a.PeriodTrans = z.PeriodTrans
-            AND a.lob_id = z.lob_id
-
-
-      GROUP BY
+    JOIN
+      (SELECT lob_id, periodtrans from customer_reports.dbo.TreatyQuarter
+          UNION ALL
+        -- check for mid-period
+      SELECT lob_id, maxperiod from customer_reports.dbo.TreatyQuarter tq
+        JOIN (SELECT lobid, max(periodtrans) maxperiod from Customer_Reports.dbo.ClaimCountsRolling
+            GROUP by lobid) m ON m.maxperiod between year(qstartdate)*100+month(qstartdate) and year(qstartdate)*100+month(qstartdate)+1
+            AND m.lobid = tq.lob_id) tq
+        ON tq.lob_id = z.lob_id
+        AND tq.periodtrans = z.periodtrans
+    GROUP BY
       z.PeriodTrans ,
-            CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date)  / 3  END ,
-            DATEDIFF(m, t.eff_date, ProcessingDate)  / 3 -
-            CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) / 3   END ,
- --           DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  ,
+      CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date)  / 3  END ,
+      DATEDIFF(m, t.eff_date, ProcessingDate)  / 3 -
+      CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) / 3   END ,
+      DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  ,
       company_id,
           state_id,
           z.lob_id,
@@ -108,14 +114,14 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
     type: string
     hidden: yes
     primary_key: yes
-    sql: CONCAT(${policy_quarter},'_',${lag_quarter},'_',${treaty_quarter},'_',${coveragecode_id},'_',${new_ren},'_',${lob_id},'_',${treaty},'_',${renewal_version}) ;;
+    sql: CONCAT(${policy_quarter},'_',${lag_quarter},'_',${treaty_quarter},'_',${trans_quarter},'_',${coveragecode_id},'_',${new_ren},'_',${lob_id},'_',${treaty},'_',${renewal_version}) ;;
   }
 
-  # dimension: trans_quarter {
-  #   type: number
-  #   hidden: yes
-  #   sql: ${TABLE}.trans_quarter ;;
-  # }
+  dimension: trans_quarter {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.trans_quarter ;;
+  }
 
   dimension: lag_quarter {
     type: number
