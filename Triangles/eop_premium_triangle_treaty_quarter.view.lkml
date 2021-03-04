@@ -58,7 +58,7 @@ view: eop_premium_triangle_treaty_quarter {
             policy,
             emp.eff_date
 
-
+/*
           UNION ALL
 
           SELECT
@@ -96,7 +96,7 @@ view: eop_premium_triangle_treaty_quarter {
             unit_num,
             policy,
             emp.eff_date
-
+*/
                 UNION ALL
 
               SELECT

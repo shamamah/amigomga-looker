@@ -77,7 +77,8 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
             renewal_ver,
             eff_date,
             0 as paid
-    FROM Customer_Reports.dbo.ClaimCountsRolling) a) z
+    FROM Customer_Reports.dbo.ClaimCountsRolling
+    WHERE PeriodTrans <> YEAR(GETDATE())*100+MONTH(GETDATE())) a) z
     JOIN customer_reports.dbo.treaty t ON
       t.lob_id = z.lob_id
       AND z.eff_date between t.eff_date and t.exp_date

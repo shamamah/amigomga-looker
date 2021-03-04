@@ -76,6 +76,8 @@ view: eop_claims_triangle_treaty_quarter {
                   AND PolicyImage.eff_date between t.eff_date and t.exp_date
             WHERE
               CFE.claimeoplevel_id = 3
+              -- Current Month
+              AND CFE.year_month_key <> YEAR(GETDATE())*100+Month(GETDATE())
             GROUP BY
                 DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') / 3,
                 CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) / 3 < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) / 3 END,
