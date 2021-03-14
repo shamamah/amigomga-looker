@@ -35,6 +35,16 @@ explore: dt_cash_and_fees {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: dt_policy_agency {
+    view_label: "Agency"
+    type: left_outer
+    relationship: one_to_one
+    sql_on:  ${policy_image.policy_id} = ${dt_policy_agency.policy_id}
+          AND ${dt_policy_agency.policyimage_num} = ${policy_image.policyimage_num};;
+
+  }
+
+
   join: policy_image_name_link {
     type: left_outer
     fields: []
