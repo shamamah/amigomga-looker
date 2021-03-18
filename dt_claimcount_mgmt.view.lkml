@@ -18,6 +18,7 @@ view: dt_claimcount_mgmt {
         FirstClose,
         FirstOpen,
         monthlyClose,
+        LastClose,
         ActivityAge,
         Outstanding,
         policy,
@@ -48,6 +49,8 @@ view: dt_claimcount_mgmt {
                     ELSE 0 END AS FirstOpen,
                 CASE WHEN CFA.claimactivitycode_id = 2 and cm.claimcontrol_id is not NULL THEN 1
                     ELSE 0 END AS monthlyClose,
+                CASE WHEN CFA.claimactivitycode_id = 2 and lc.claimcontrol_id is not NULL THEN 1
+                    ELSE 0 END AS LastClose,
                 DATEDIFF(d, cc.Reported_Date, cfa.added_date) as ActivityAge,
                 CASE WHEN CFA.claimactivitycode_id = 1 THEN 1 ELSE -1 END as Outstanding,
                         policy,
@@ -61,16 +64,20 @@ view: dt_claimcount_mgmt {
                   AND ClmFeat.claimant_num = CFA.claimant_num
                   AND ClmFeat.claimfeature_num = CFA.claimfeature_num
                   AND claimactivitycode_id IN (1, 2)
-                LEFT OUTER JOIN
-                  ( SELECT min(added_date) added_date, claimcontrol_id, claimant_num, claimfeature_num, sum(amount) amount
-                    FROM Claimtransaction
-                    WHERE amount > 0
-                          AND claimtransactioncategory_id = 2
-                    GROUP BY claimcontrol_id, claimant_num, claimfeature_num) z
-                        ON z.claimcontrol_id = CFA.claimcontrol_id
-                        AND z.claimant_num = CFA.claimant_num
-                        AND z.claimfeature_num = CFA.claimfeature_num
-                        AND z.added_date <= cfa.Added_date
+              LEFT OUTER JOIN
+                (Select min(ck.check_date) check_date, ct.claimcontrol_id,
+                          ct.claimant_num, ct.claimfeature_num, SUM(ck.Total_Amount) as Amount
+                      from claimtransaction ct
+                      join checkitem CI ON ct.checkitem_id = CI.Checkitem_id
+                      join checks ck ON ck.check_id = ci.check_id
+                      where claimtransactioncategory_id = 2
+                      and claimtransactionstatus_id = 1
+                      and ck.check_number <> ''
+                      group by ct.claimcontrol_id, ct.claimant_num, ct.claimfeature_num) z
+                      ON z.claimcontrol_id = CFA.claimcontrol_id
+                      AND z.claimant_num = CFA.claimant_num
+                      AND z.claimfeature_num = CFA.claimfeature_num
+                      AND YEAR(z.check_date)*100+MONTH(z.check_date) <= YEAR(cfa.Added_date)*100+MONTH(cfa.added_date)
                 LEFT OUTER JOIN dbo.ClaimFeatureActivity od
                       ON cfa.claimcontrol_id = od.claimcontrol_id
                       AND cfa.claimant_num = od.claimant_num
@@ -83,6 +90,20 @@ view: dt_claimcount_mgmt {
                                             AND cfa.claimant_num = CCA.claimant_num
                                             AND cfa.claimfeature_num = CCA.claimfeature_num
                                             AND CCA.claimactivitycode_id = 1)
+                      AND cc.claimcontrol_id >= -1
+                      AND cc.policy_id >= -1
+                LEFT OUTER JOIN dbo.ClaimFeatureActivity lc
+                      ON cfa.claimcontrol_id = lc.claimcontrol_id
+                      AND cfa.claimant_num = lc.claimant_num
+                      AND cfa.claimfeature_num = lc.claimfeature_num
+                      AND cfa.num = lc.num
+                      AND lc.claimactivitycode_id = 2
+                      AND cfa.num = ( SELECT MAX(num)
+                                      FROM dbo.ClaimFeatureActivity CCA
+                                      WHERE CCA.claimcontrol_id = cfa.claimcontrol_id
+                                            AND cfa.claimant_num = CCA.claimant_num
+                                            AND cfa.claimfeature_num = CCA.claimfeature_num
+                                            AND CCA.claimactivitycode_id = 2)
                       AND cc.claimcontrol_id >= -1
                       AND cc.policy_id >= -1
                 LEFT OUTER JOIN dbo.ClaimFeatureActivity cd
@@ -138,6 +159,7 @@ view: dt_claimcount_mgmt {
                 0,
                 0,
                 0,
+                0,
                 0 as Outstanding,
                 policy,
                 PolImg.eff_date,
@@ -189,6 +211,7 @@ view: dt_claimcount_mgmt {
                 ClaimControl.claimcontrol_id,
                 'Payment' as ActionType,
                 NULL,
+                0,
                 0,
                 0,
                 0,
@@ -263,6 +286,12 @@ view: dt_claimcount_mgmt {
       sql: ${TABLE}.monthlyClose;;
     }
 
+    dimension: last_close {
+      hidden: yes
+      type: number
+      sql: ${TABLE}.LastClose;;
+    }
+
     measure: closed_count {
       label: "First Closed Pay"
       type: count
@@ -281,6 +310,13 @@ view: dt_claimcount_mgmt {
       label: "First Closed w/o Pay"
       type: count
       filters: [action_type: "Closed", closed_type: "CWOP", first_close: "1"]
+      drill_fields: [detail*]
+    }
+
+    measure: last_closed {
+      label: "Last Close"
+      type: count
+      filters: [action_type: "Closed", last_close: "1"]
       drill_fields: [detail*]
     }
 
@@ -411,6 +447,11 @@ view: dt_claimcount_mgmt {
       sql: DATEDIFF(day,${TABLE}.reported_date, GETDATE()) ;;
     }
 
+    dimension: feature_age {
+      type: number
+      sql: DATEDIFF(day,CASE WHEN ${TABLE}.ActionType = 'Reported' THEN ${TABLE}.reported_date ELSE ${TABLE}.reported_date END, GETDATE()) ;;
+    }
+
     dimension: age_bucket {
       type: tier
       style: integer
@@ -418,6 +459,15 @@ view: dt_claimcount_mgmt {
       sql: ${claim_age} ;;
       drill_fields: [detail*]
     }
+
+    dimension: feature_bucket {
+      type: tier
+      style: integer
+      tiers: [31, 61, 91, 121, 151, 181]
+      sql: ${feature_age} ;;
+      drill_fields: [detail*]
+    }
+
 
     measure: outstanding {
       type: sum
