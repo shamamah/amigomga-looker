@@ -26,7 +26,7 @@ view: dt_claimcount_mgmt {
         paid
         from (Select
                 CAST(cfa.Added_date as Datetime) ProcessingDate,
-                cc.Reported_Date,
+                od1.mindate as Reported_Date,
                 Company_id,
                 LOB_id,
                 State_id,
@@ -131,6 +131,13 @@ view: dt_claimcount_mgmt {
                       AND cm.claimant_num = cfa.claimant_num
                       AND cm.claimfeature_num = cfa.claimfeature_num
                       AND cm.num = cfa.num
+                LEFT OUTER JOIN (Select claimcontrol_id, claimant_num, claimfeature_num, Min(added_date) as Mindate
+                          from dbo.ClaimFeatureActivity
+                          where claimactivitycode_id = 1
+                          group by claimcontrol_id, claimant_num, claimfeature_num) od1
+                      ON cfa.claimcontrol_id = od1.claimcontrol_id
+                      AND cfa.claimant_num = od1.claimant_num
+                      AND cfa.claimfeature_num = od1.claimfeature_num
                 INNER JOIN PolicyImage PolImg WITH(NOLOCK)
                       ON CC.policy_id = PolImg.policy_id
                       AND CC.policyimage_num = PolImg.policyimage_num
@@ -447,11 +454,6 @@ view: dt_claimcount_mgmt {
       sql: DATEDIFF(day,${TABLE}.reported_date, GETDATE()) ;;
     }
 
-    dimension: feature_age {
-      type: number
-      sql: DATEDIFF(day,CASE WHEN ${TABLE}.ActionType = 'Reported' THEN ${TABLE}.reported_date ELSE ${TABLE}.reported_date END, GETDATE()) ;;
-    }
-
     dimension: age_bucket {
       type: tier
       style: integer
@@ -459,15 +461,6 @@ view: dt_claimcount_mgmt {
       sql: ${claim_age} ;;
       drill_fields: [detail*]
     }
-
-    dimension: feature_bucket {
-      type: tier
-      style: integer
-      tiers: [31, 61, 91, 121, 151, 181]
-      sql: ${feature_age} ;;
-      drill_fields: [detail*]
-    }
-
 
     measure: outstanding {
       type: sum
