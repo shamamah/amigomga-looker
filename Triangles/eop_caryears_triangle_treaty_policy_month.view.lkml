@@ -61,52 +61,10 @@ view: eop_caryears_triangle_treaty_policy_month {
                 policy,
                 emp.eff_date,
                 emp.exp_date
-            UNION ALL
-
-              SELECT
-                YEAR(GETDATE()-1) as year,
-                MONTH(GETDATE()-1) as month,
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-           --           Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date,
-                CAST(SUM(exposure_earned_days_mtd) as float) as eDays,
-                CAST(SUM(exposure_written_days_mtd) as float) as wDays,
-                ROUND(CAST(CAST(SUM(exposure_earned_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4)  AS ECY,
-                ROUND(CAST(CAST(SUM(exposure_written_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4) as WCY
-    --            CAST(CAST(sum(exposure_earned_days_mtd)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float) as money)  AS ECY,
-        --CAST(CAST(sum(exposure_written_days_mtd)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float) as money)  as WCY
-                --SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-              FROM EOPExposuresCoverage EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN .CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              GROUP BY
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-            --          Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date,
-                emp.exp_date
                 ) xx
                   ON t.lob_id = xx.lob_id
                   AND xx.eff_date between t.eff_date and t.exp_date
-                  AND xx.caption in ('Property Damage', 'Collision')
+--                  AND xx.caption in ('Property Damage', 'Collision')
     INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
     LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem
