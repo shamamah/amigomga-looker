@@ -116,7 +116,7 @@ view: eop_caryear_triangle_treaty_quarter {
   }
 
   measure: total_written_premium {
-    label: "Written Premium"
+    label: "Written Car Year"
     type: sum
     sql: ${TABLE}.writtencaryear ;;
   }
