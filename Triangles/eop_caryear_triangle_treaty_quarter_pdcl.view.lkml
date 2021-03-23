@@ -173,24 +173,28 @@ view: eop_caryear_triangle_treaty_quarter_pdcl {
   dimension: lobname {
     label: "Program Name (LOB)"
     type: string
+    hidden:  yes
     sql: ${TABLE}.lobname ;;
   }
 
   dimension: treaty {
     label: "Treaty Name"
     type: string
+    hidden:  yes
     sql: ${TABLE}.Treaty ;;
   }
 
   dimension: renewal_ver {
     label: "RenewalVersion"
     type: string
+    hidden:  yes
     sql: ${TABLE}.renewal_ver ;;
   }
 
   dimension: new_renewal {
     label: "New_Renew"
     type: string
+    hidden:  yes
     sql: ${TABLE}.NewRen ;;
   }
   dimension: coveragecode_id {
@@ -202,6 +206,7 @@ view: eop_caryear_triangle_treaty_quarter_pdcl {
   dimension: caption {
     label: "Coverage"
     type: string
+    hidden:  yes
     sql: ${TABLE}.caption ;;
   }
 
