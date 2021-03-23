@@ -125,18 +125,21 @@ view: eop_caryear_triangle_treaty_quarter {
   dimension: lag_year_quarter {
     label: "_Lag Year_QTR"
     type: string
+    hidden: yes
     sql: ${TABLE}.lag_quarter;;
   }
 
   dimension: trans_year_quarter {
     label: "_Trans Year_QTR (YYYYQ)"
     type: string
+    hidden: yes
     sql: ${TABLE}.trans_quarter ;;
   }
 
   dimension: policy_quarter {
     label: "Policy Quarter"
     type: string
+    hidden: yes
     sql: ${TABLE}.policy_quarter;;
   }
 
