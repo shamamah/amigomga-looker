@@ -90,7 +90,89 @@ view: dt_premiums {
             renewal_ver,
             unit_num,
             policy,
-            emp.eff_date) xx
+            emp.eff_date
+
+    UNION ALL
+
+          SELECT
+                2021,
+                1,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          WHERE EMP.year_month_key = 202012
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
+
+                UNION ALL
+
+          SELECT
+                2021,
+                2,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          WHERE EMP.year_month_key = 202012
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
+
+            ) xx
       Group by
             Year,
             Month,
@@ -197,7 +279,87 @@ view: dt_premiums {
             renewal_ver,
             unit_num,
             policy,
-            emp.eff_date) xx
+            emp.eff_date
+                  UNION
+
+          SELECT
+                2021,
+                1,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          WHERE EMP.year_month_key = 202012
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
+
+    UNION
+
+          SELECT
+                2021,
+                2,
+                V.company_id,
+                V.state_id,
+                V.lob_id,
+                EMP.coveragecode_id,
+                CCV.caption,
+                policy_id,
+--                Policyimage_num,
+                renewal_ver,
+                unit_num,
+                policy,
+                emp.eff_date,
+                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
+                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium
+          FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+          INNER JOIN [Version] V WITH(NOLOCK)
+            ON V.version_id = EMP.version_id
+          INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+            ON EMP.coveragecode_id = CCV.coveragecode_id
+              AND V.version_id = CCV.version_id
+          WHERE EMP.year_month_key = 202012
+          GROUP BY
+            EMP.year,
+            EMP.month,
+            V.company_id,
+            V.state_id,
+            V.lob_id,
+            EMP.coveragecode_id,
+            CCV.caption,
+            policy_id,
+--            Policyimage_num,
+            renewal_ver,
+            unit_num,
+            policy,
+            emp.eff_date
+            ) xx
 
   RIGHT JOIN (SELECT
           CFE.Year,
@@ -326,14 +488,14 @@ view: dt_premiums {
     label: "Avg Earned"
     type: average
     value_format: "0.##"
-    sql: ${TABLE}.totalearnedpremium ;;
+    sql: total_earned_premium ;;
   }
 
   measure: avgWritten {
     label: "Avg Written"
     type: average
     value_format: "0.##"
-    sql: ${TABLE}.totalwrittenpremium ;;
+    sql: total_written_premium ;;
   }
 
 
