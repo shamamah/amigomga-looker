@@ -20,7 +20,7 @@ view: dt_coverage_liab_phys {
               AND PIM.Policy_ID > -1 ;;
 
       sql_trigger_value: SELECT CAST(added_date as DATE) from policyimage ;;
-    indexes: ["added_date"]
+    indexes: ["policy_id"]
 
     }
 
