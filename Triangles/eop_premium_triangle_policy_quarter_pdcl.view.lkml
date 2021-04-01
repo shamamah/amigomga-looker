@@ -1,8 +1,8 @@
-view: eop_premium_triangle_policy_quarter {
+view: eop_premium_triangle_policy_quarter_pdcl {
   derived_table: {
     sql:  SELECT
-          CASE WHEN DATEDIFF(q, '2019-05-01', xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(q, '2019-05-01', xx.eff_date) END as policy_quarter,
-          CASE WHEN DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END
+          CASE WHEN DATEDIFF(q, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(q, t.eff_date, xx.eff_date) END as policy_quarter,
+          CASE WHEN DATEDIFF(q, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END
           --CASE WHEN DATEDIFF(m, '2019-05-01', z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', z.eff_date) END
               as lag_quarter,
           DATEDIFF(q, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as trans_quarter,
@@ -11,23 +11,21 @@ view: eop_premium_triangle_policy_quarter {
             state_id,
             xx.lob_id,
             lobname,
-            coveragecode_id,
-            caption,
-     --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
+      CoverageType,
             CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
             Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+            renewal_ver,
             SUM(TotalEarnedPremium) as EarnedPremium,
             SUM(TotalWrittenPremium) as WrittenPremium,
             SUM(TotalUnearnedPremium) as UnearnedPremium
         FROM  Customer_Reports.dbo.Treaty t
-            LEFT JOIN (SELECT
+        LEFT JOIN (SELECT
                     EMP.YEAR,
                     EMP.Month,
                     V.company_id,
                     V.state_id,
                     V.lob_id,
-                    EMP.coveragecode_id,
-                    CCV.caption,
+          CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END as CoverageType,
                     policy_id,
     --                Policyimage_num,
                     renewal_ver,
@@ -43,14 +41,14 @@ view: eop_premium_triangle_policy_quarter {
               INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
                 ON EMP.coveragecode_id = CCV.coveragecode_id
                   AND V.version_id = CCV.version_id
+      INNER JOIN CoverageCode cc ON cc.coveragecode_id = ccv.coveragecode_id
               GROUP BY
                 EMP.year,
                 EMP.month,
                 V.company_id,
                 V.state_id,
                 V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
+                CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END,
                 policy_id,
     --            Policyimage_num,
                 renewal_ver,
@@ -59,43 +57,6 @@ view: eop_premium_triangle_policy_quarter {
                 emp.eff_date
 
 
-              UNION ALL
-
-              SELECT
-                YEAR(GETDATE()-1) as year,
-                MONTH(GETDATE()-1) as month,
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-     --           Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date,
-                SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
-                SUM(EMP.premium_written_mtd) AS TotalWrittenPremium,
-          SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-              FROM EOPPremiums EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN .CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                  AND V.version_id = CCV.version_id
-              GROUP BY
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-      --          Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date
 
                     UNION ALL
 
@@ -105,8 +66,7 @@ view: eop_premium_triangle_policy_quarter {
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END as CoverageType,
                   policy_id,
   --                Policyimage_num,
                   renewal_ver,
@@ -122,7 +82,7 @@ view: eop_premium_triangle_policy_quarter {
               INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
                 ON EMP.coveragecode_id = CCV.coveragecode_id
                 AND V.version_id = CCV.version_id
-
+        INNER JOIN CoverageCode cc ON cc.coveragecode_id = ccv.coveragecode_id
               WHERE
               EMP.year_month_key = '202012'
               GROUP BY
@@ -131,15 +91,14 @@ view: eop_premium_triangle_policy_quarter {
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END,
                   policy_id,
                   renewal_ver,
                   unit_num,
                   policy,
                   emp.eff_date
 
-    UNION ALL
+      UNION ALL
 
               SELECT
                   2021,
@@ -147,8 +106,7 @@ view: eop_premium_triangle_policy_quarter {
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END as CoverageType,
                   policy_id,
   --                Policyimage_num,
                   renewal_ver,
@@ -164,6 +122,7 @@ view: eop_premium_triangle_policy_quarter {
               INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
                 ON EMP.coveragecode_id = CCV.coveragecode_id
                 AND V.version_id = CCV.version_id
+        INNER JOIN CoverageCode cc ON cc.coveragecode_id = ccv.coveragecode_id
               WHERE
               EMP.year_month_key = '202012'
               GROUP BY
@@ -172,16 +131,14 @@ view: eop_premium_triangle_policy_quarter {
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END,
                   policy_id,
-            --            Policyimage_num,
                   renewal_ver,
                   unit_num,
                   policy,
                   emp.eff_date
 
-UNION ALL
+     UNION ALL
 
               SELECT
                   2021,
@@ -189,8 +146,7 @@ UNION ALL
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END as CoverageType,
                   policy_id,
   --                Policyimage_num,
                   renewal_ver,
@@ -206,6 +162,7 @@ UNION ALL
               INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
                 ON EMP.coveragecode_id = CCV.coveragecode_id
                 AND V.version_id = CCV.version_id
+        INNER JOIN CoverageCode cc ON cc.coveragecode_id = ccv.coveragecode_id
               WHERE
               EMP.year_month_key = '202012'
               GROUP BY
@@ -214,46 +171,31 @@ UNION ALL
                   V.company_id,
                   V.state_id,
                   V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  CASE WHEN Coveragetype = 'PIP' Then 'Liability' ELSE Coveragetype END,
                   policy_id,
-            --            Policyimage_num,
                   renewal_ver,
                   unit_num,
                   policy,
                   emp.eff_date
+
                   ) xx
-         ON t.lob_id = xx.lob_id
-            AND xx.eff_date between t.eff_date and t.exp_date
-         INNER JOIN LOB l
+          ON t.lob_id = xx.lob_id
+          AND xx.eff_date between t.eff_date and t.exp_date
+      INNER JOIN LOB l
                 ON l.lob_id = xx.lob_id
-          LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
-          JOIN ProductionBackup.dbo.Coverage c
-            ON c.policy_id = pim.policy_id
-            AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
-          JOIN ProductionBackup.dbo.coveragecode cc
-            on cc.coveragecode_id = c.coveragecode_id
-            and cc.coveragetype = 'PhysicalDamage'
-                GROUP by c.Policy_id, pim.renewal_ver
-                HAVING SUM(c.premium_fullterm) > 0) cc1
-                  ON xx.policy_id = cc1.policy_id
-                  AND xx.renewal_ver = cc1.renewal_ver
-          Group by
-      CASE WHEN DATEDIFF(q, '2019-05-01', xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(q, '2019-05-01', xx.eff_date) END,
-      CASE WHEN DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END
-      --CASE WHEN DATEDIFF(m, '2019-05-01', z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', z.eff_date) END
-      ,
-      DATEDIFF(q, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
-      --YEAR(xx.eff_date)*100+MONTH(xx.eff_date),
+      GROUP BY
+      CASE WHEN DATEDIFF(q, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(q, t.eff_date, xx.eff_date) END,
+      CASE WHEN DATEDIFF(q, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(q, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END
+            ,
+          DATEDIFF(q, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
       company_id,
       state_id,
       xx.lob_id,
       lobname,
-      coveragecode_id,
-      caption,
-    --        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
+      coveragetype,
       CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-      Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')';;
+      Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')',
+      renewal_ver;;
   }
 
 
@@ -357,16 +299,18 @@ UNION ALL
     type: string
     sql: ${TABLE}.NewRen ;;
   }
-  dimension: coveragecode_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.coveragecode_id ;;
+
+  dimension: renewal_ver {
+    label: "Renewal Version"
+    type: string
+    sql: ${TABLE}.renewal_ver ;;
   }
 
-  dimension: caption {
+  dimension: coveragetype {
     label: "Coverage"
     type: string
-    sql: ${TABLE}.caption ;;
+    sql: ${TABLE}.coveragetype;;
   }
+
 
 }
