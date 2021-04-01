@@ -17,8 +17,11 @@ view: dt_coverage_liab_phys {
                   ON pim.policy_id = cc1.policy_id
                   AND pim.policyimage_num = cc1.policyimage_num
               WHERE  policystatuscode_id NOT IN (4, 5, 7, 8, 12, 13, 14)
-              AND PIM.Policy_ID > -1
- ;;
+              AND PIM.Policy_ID > -1 ;;
+
+      sql_trigger_value: SELECT CAST(added_date as DATE) from policyimage ;;
+    indexes: ["added_date"]
+
     }
 
 
