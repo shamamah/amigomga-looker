@@ -1,0 +1,246 @@
+view: pdt_renewals_rollovers {
+  derived_table: {
+    sql: SELECT
+        Pim.Policy_id as CurrentPolicyID,
+        PIM.policy as CurrentPolicy,
+        PIMRLRO.Policy_id as RolloverPolicyID,
+        PIMRLRO.policy as RolloverPolicy,
+        PIM.exp_date as RenewalDate,
+        CASE
+          WHEN v.LOB_ID = 1 THEN 'Amigo Blue'
+          WHEN v.LOB_ID = 2 THEN 'Amigo America'
+          WHEN v.LOB_ID = 3 THEN 'Amigo USA'
+          ELSE 'N/A' END as Lobname,
+        CASE WHEN PIMRLRO.policy is NULL THEN 0 ELSE 1 END as RolloverGenerated,
+        prt.process_date as Printeddate,
+        PrintBatchStatus,
+        CASE WHEN PIMRoll.policy_id is not NULL THEN 1 ELSE 0 END as RolledOver,
+        q.Balance as PolicyBalance,
+        CASE WHEN PIM.Transtype_id = 1  THEN -PIM.premium_chg_fullterm ELSE PIM.Premium_fullterm END as CurrentWrittenPremium,
+        COALESCE(PIMRLRO.premium_fullterm, 0) as RenewalWrittenPremium,
+        PIM.Renewal_ver as RenewalVersion,
+        A.Code as AgencyCode,
+        n.display_name as AgencyName,
+        CASE WHEN PIM.Transtype_id = 1  THEN 1 ELSE 0 END as Cancelled,
+        CASE WHEN PIM.Transtype_id = 1  THEN tr.dscr ELSE '' END as CancelledReason,
+        CASE WHEN PIM.Transtype_id = 1  THEN p.cancel_date ELSE '' END as CancelledDate,
+        CASE WHEN PIMRLRO.policy is NULL and P.nonrenew = 1 THEN 1 ELSE 0 END as NonRenew
+
+          FROM ProductionBackup.dbo.Policy P
+        INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
+              FROM ProductionBackup.dbo.PolicyImage
+              WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
+              AND policystatuscode_id in (1, 3)
+              GROUP BY Policy_id) MPIM
+              ON MPIM.Policy_id = P.Policy_id
+          INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
+            ON PIM.policy_id = MPIM.policy_id
+              AND PIM.policyimage_num = MPIM.policyimage_num
+      LEFT JOIN ProductionBackup.dbo.TransReason TR on TR.transreason_id = Pim.transreason_id
+      INNER JOIN ProductionBackup.dbo.Agency a ON a.agency_id = pim.agency_id
+      INNER JOIN ProductionBackup.dbo.AgencyNameLink anl ON a.agency_id = anl.agency_id
+      INNER JOIN ProductionBackup.dbo.Name n ON n.name_id = anl.name_id
+      INNER JOIN ProductionBackup.dbo.Version v ON v.version_id = PIM.version_id
+       INNER JOIN ProductionBackup.dbo.CompanyStateLOB csl ON csl.companystatelob_id = v.companystatelob_id
+      INNER JOIN ProductionBackup.dbo.CompanyLOB cl ON csl.companylob_id = cl.companylob_id
+          AND cl.company_id = 1 -- Clear SPrings
+      JOIN (Select v.policy_id, Balance from  ProductionBackup.dbo.vBillingstatementBalance v
+            JOIN (select policy_id, max(billingactivityorder) maxorder
+                from ProductionBackup.dbo.vBillingstatementBalance
+                group by policy_id) v1
+            ON v1.policy_id = v.policy_id
+            AND v1.maxorder = v.billingactivityorder) q
+          ON q.policy_id = pim.policy_id
+        LEFT JOIN ProductionBackup.dbo.Policy pp ON pp.rewrittenfrom_policy_id = p.policy_id
+        LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRLRO -- Rollover Policy Renewal Offer
+          ON PIMRLRO.Policy_id = pp.policy_id
+          AND PIMRLRO.Transtype_id in (13, 4)
+        LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRoll  -- Rollover Policy Renewed
+          ON PIMRoll.Policy_id = pp.policy_id
+          AND PIMRoll.Transtype_id = 4
+
+      LEFT JOIN (SELECT DISTINCT /*needed because of policy form*/
+              PP.printprocess_id,
+              PP.process_date,
+              --max(PIM.eff_date),
+              --count(1)
+              FV.formversion_id,
+              PP.printevent_id,
+              PP.printxml_id,
+              PP.policy_id,
+              PP.policyimage_num,
+              BS.description as PrintBatchStatus,
+              PIM.[policy],
+              PIM.version_id,
+              PIM.eff_date
+            FROM ProductionBackup.dbo.PrintProcess PP
+            INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
+              ON PIM.policy_id = PP.policy_id
+                AND PIM.policyimage_num = PP.policyimage_num
+            INNER JOIN ProductionBackup.dbo.[Version] V WITH (NOLOCK)
+              ON V.version_id = PIM.version_id
+            INNER JOIN ProductionBackup.dbo.PolicyForm PF WITH (NOLOCK)
+              ON PF.policy_id = PP.policy_id
+                AND PF.policyimage_num = PP.policyimage_num
+                AND PF.printxml_id = PP.printxml_id
+            INNER JOIN ProductionBackup.dbo.PrintXML PX
+              ON PP.policy_id = PX.policy_id
+                AND PP.policyimage_num = PX.policyimage_num
+                AND PP.printxml_id = PX.printxml_id
+            INNER JOIN ProductionBackup.dbo.BatchStatus bs ON
+                bs.batchstatus_id = PX.batchstatus_id
+            INNER JOIN ProductionBackup.dbo.FormVersion FV WITH (NOLOCK)
+              ON FV.formversion_id = PF.formversion_id
+            LEFT OUTER JOIN ProductionBackup.dbo.FutureEvents FE WITH(NOLOCK)
+              ON FE.policy_id = PIM.policy_id
+            LEFT OUTER JOIN ProductionBackup.dbo.TransReasonVersion TRV WITH (NOLOCK)
+              ON TRV.version_id = PIM.version_id
+                AND TRV.transreason_id = PIM.transreason_id
+            WHERE
+              PP.printevent_id = 162
+              ) prt
+                ON  prt.policy_id = PIMRLRO.policy_id
+                  AND Pim.exp_date = prt.eff_date
+        WHERE p.Cancel_date > '2021-04-05'
+     ;;
+  }
+
+  measure: count {
+    type: count
+    drill_fields: [detail*]
+  }
+
+  dimension: current_policy_id {
+    type: number
+    hidden: yes
+    primary_key: yes
+    sql: ${TABLE}.CurrentPolicyID ;;
+  }
+
+  dimension: current_policy {
+    type: string
+    sql: ${TABLE}.CurrentPolicy ;;
+  }
+
+  dimension: rollover_policy_id {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.RolloverPolicyID ;;
+  }
+
+  dimension: rollover_policy {
+    type: string
+    sql: ${TABLE}.RolloverPolicy ;;
+  }
+
+  dimension: renewal_date {
+    type: date
+    sql: ${TABLE}.RenewalDate ;;
+  }
+
+  dimension: lobname {
+    type: string
+    sql: ${TABLE}.Lobname ;;
+  }
+
+  measure: rollover_generated {
+    label: "RolloverGenerated_Count"
+    type: sum
+    sql: ${TABLE}.RolloverGenerated ;;
+  }
+
+  dimension_group: printeddate {
+    type: time
+    sql: ${TABLE}.Printeddate ;;
+  }
+
+  dimension: print_batch_status {
+    type: string
+    sql: ${TABLE}.PrintBatchStatus ;;
+  }
+
+  measure: rolled_over {
+    label: "RolledOver_Count"
+    type: sum
+    sql: ${TABLE}.RolledOver ;;
+  }
+
+  measure: policy_balance {
+    label: "Policy Balance"
+    type: sum
+    sql: ${TABLE}.PolicyBalance ;;
+  }
+
+  measure: current_written_premium {
+    label: "Current Written Premium"
+    type: sum
+    sql: ${TABLE}.CurrentWrittenPremium ;;
+  }
+
+  measure: renewal_written_premium {
+    label: "Rollover Written Premium"
+    type: sum
+    sql: ${TABLE}.RenewalWrittenPremium ;;
+  }
+
+  dimension: renewal_version {
+    label: "Renewal Version"
+    type: number
+    sql: ${TABLE}.RenewalVersion ;;
+  }
+
+  dimension: agency_code {
+    type: string
+    sql: ${TABLE}.AgencyCode ;;
+  }
+
+  dimension: agency_name {
+    type: string
+    sql: ${TABLE}.AgencyName ;;
+  }
+
+  measure: cancelled {
+    label: "Cancelled_Count"
+    type: sum
+    sql: ${TABLE}.Cancelled ;;
+  }
+
+  dimension: cancelled_reason {
+    label: "Cancelled Reason"
+    type: string
+    sql: ${TABLE}.CancelledReason ;;
+  }
+
+  dimension_group: cancelled_date {
+    type: time
+    sql: ${TABLE}.CancelledDate ;;
+  }
+
+  dimension: non_renew {
+    type: number
+    sql: ${TABLE}.NonRenew ;;
+  }
+
+  set: detail {
+    fields: [
+      current_policy,
+      rollover_policy,
+      renewal_date,
+      lobname,
+      rollover_generated,
+      printeddate_time,
+      print_batch_status,
+      rolled_over,
+      policy_balance,
+      current_written_premium,
+      renewal_written_premium,
+      renewal_version,
+      agency_code,
+      agency_name,
+      cancelled,
+      cancelled_reason,
+      cancelled_date_time,
+      non_renew
+    ]
+  }
+}
