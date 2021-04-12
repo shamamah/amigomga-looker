@@ -3,6 +3,8 @@ view: pdt_renewals_rollovers {
     sql: SELECT
         Pim.Policy_id as CurrentPolicyID,
         PIM.policy as CurrentPolicy,
+        PH1.display_name AS policyholder1_displayname,
+        PH.Phone_num,
         PIMRLRO.Policy_id as RolloverPolicyID,
         PIMRLRO.policy as RolloverPolicy,
         PIM.exp_date as RenewalDate,
@@ -23,7 +25,7 @@ view: pdt_renewals_rollovers {
         n.display_name as AgencyName,
         CASE WHEN PIM.Transtype_id = 1  THEN 1 ELSE 0 END as Cancelled,
         CASE WHEN PIM.Transtype_id = 1  THEN tr.dscr ELSE '' END as CancelledReason,
-        CASE WHEN PIM.Transtype_id = 1  THEN p.cancel_date ELSE '' END as CancelledDate,
+        CASE WHEN PIM.Transtype_id = 1  THEN p.cancel_date ELSE NULL END as CancelledDate,
         CASE WHEN PIMRLRO.policy is NULL and P.nonrenew = 1 THEN 1 ELSE 0 END as NonRenew
 
           FROM ProductionBackup.dbo.Policy P
@@ -41,9 +43,17 @@ view: pdt_renewals_rollovers {
       INNER JOIN ProductionBackup.dbo.AgencyNameLink anl ON a.agency_id = anl.agency_id
       INNER JOIN ProductionBackup.dbo.Name n ON n.name_id = anl.name_id
       INNER JOIN ProductionBackup.dbo.Version v ON v.version_id = PIM.version_id
-       INNER JOIN ProductionBackup.dbo.CompanyStateLOB csl ON csl.companystatelob_id = v.companystatelob_id
+      INNER JOIN ProductionBackup.dbo.CompanyStateLOB csl ON csl.companystatelob_id = v.companystatelob_id
       INNER JOIN ProductionBackup.dbo.CompanyLOB cl ON csl.companylob_id = cl.companylob_id
           AND cl.company_id = 1 -- Clear SPrings
+      INNER JOIN ProductionBackup.dbo.[Name] PH1 WITH (NOLOCK)
+          ON PH1.policy_id = PIM.policy_id
+          AND PH1.policyimage_num = PIM.policyimage_num
+          AND PH1.nameaddresssource_id = 3
+      LEFT JOIN (Select policy_id, phone_num,
+          ROW_Number() OVER(Partition By POlicy_id  order by policy_id, phonetype_id) as Rownbr
+          FROM ProductionBackup.dbo.Phone) ph on ph.policy_id = p.policy_id
+              and ph.Rownbr = 1
       JOIN (Select v.policy_id, Balance from  ProductionBackup.dbo.vBillingstatementBalance v
             JOIN (select policy_id, max(billingactivityorder) maxorder
                 from ProductionBackup.dbo.vBillingstatementBalance
@@ -103,6 +113,8 @@ view: pdt_renewals_rollovers {
                   AND Pim.exp_date = prt.eff_date
         WHERE p.Cancel_date > '2021-04-05'
      ;;
+    sql_trigger_value: Select MAX(pcadded_date) from ProductionBackup.dbo.policyimage;;
+    indexes: ["CurrentPolicyID"]
   }
 
   measure: count {
@@ -120,6 +132,18 @@ view: pdt_renewals_rollovers {
   dimension: current_policy {
     type: string
     sql: ${TABLE}.CurrentPolicy ;;
+  }
+
+  dimension: policyholder1_displayname {
+    label: "Policy Holder Name"
+    type: string
+    sql: ${TABLE}.policyholder1_displayname ;;
+  }
+
+  dimension: phone_num {
+    label: "Policy Holder Phone"
+    type: string
+    sql: ${TABLE}.phone_num ;;
   }
 
   dimension: rollover_policy_id {
@@ -221,6 +245,18 @@ view: pdt_renewals_rollovers {
     sql: ${TABLE}.NonRenew ;;
   }
 
+  dimension: errors {
+    label: "Rollover Errors"
+    type: string
+    sql: CASE WHEN ${TABLE}.RolloverPolicyID is NULL THEN 'No Rollover Replacement Offer or Policy Created'
+              ELSE
+                CASE WHEN ${TABLE}.Printeddate is NULL AND ${TABLE}.RolledOver = 0 THEN 'No Replacement Document Created'
+                   ELSE
+                    CASE WHEN ${TABLE}.PrintBatchStatus = 'Unprocessed' THEN 'Document Created by not Batched'
+                    END
+                END
+          END;;
+  }
   set: detail {
     fields: [
       current_policy,
