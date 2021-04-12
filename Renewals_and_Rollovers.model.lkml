@@ -13,4 +13,12 @@ explore: pdt_renewals_rollovers {
   group_label: "Diamond Analytics (REPORT)"
   label: "Renewals and Rollovers"
   view_label: "Renewals_Rollovers"
+
+  join: dt_coverage_liab_phys {
+    view_label: "Renewals_Rollovers"
+    type: inner
+    relationship: many_to_one
+    sql_on: ${pdt_renewals_rollovers.current_policy_id} = ${dt_coverage_liab_phys.policy_id}
+      AND ${pdt_renewals_rollovers.current_policyimage_num} = ${dt_coverage_liab_phys.policyimage_num};;
+  }
 }

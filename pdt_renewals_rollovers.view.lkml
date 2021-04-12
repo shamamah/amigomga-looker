@@ -2,6 +2,7 @@ view: pdt_renewals_rollovers {
   derived_table: {
     sql: SELECT
         Pim.Policy_id as CurrentPolicyID,
+        PIM.Policyimage_num as CurrentPolicyImage,
         PIM.policy as CurrentPolicy,
         PH1.display_name AS policyholder1_displayname,
         PH.Phone_num,
@@ -26,9 +27,22 @@ view: pdt_renewals_rollovers {
         CASE WHEN PIM.Transtype_id = 1  THEN 1 ELSE 0 END as Cancelled,
         CASE WHEN PIM.Transtype_id = 1  THEN tr.dscr ELSE '' END as CancelledReason,
         CASE WHEN PIM.Transtype_id = 1  THEN p.cancel_date ELSE NULL END as CancelledDate,
-        CASE WHEN PIMRLRO.policy is NULL and P.nonrenew = 1 THEN 1 ELSE 0 END as NonRenew
-
-          FROM ProductionBackup.dbo.Policy P
+        CASE WHEN PIMRLRO.policy is NULL and P.nonrenew = 1 THEN 1 ELSE 0 END as NonRenew,
+        CASE WHEN
+          CASE WHEN PIM.Transtype_id = 1  THEN -PIM.premium_chg_fullterm ELSE PIM.Premium_fullterm END
+            > COALESCE(PIMRLRO.premium_fullterm, 0)
+          THEN 'Decrease'
+          ELSE
+            CASE WHEN
+              CASE WHEN PIM.Transtype_id = 1  THEN -PIM.premium_chg_fullterm ELSE PIM.Premium_fullterm END
+              < COALESCE(PIMRLRO.premium_fullterm, 0) THEN 'Increase'
+              ELSE
+                'No Change'
+            END
+        END as PremiumDiff,
+        CASE WHEN PIE.Policy_id is NULL then 'No' ELSE 'Yes' END as EndorsementFlag,
+        PremiumChange as EndorsementPremiumChange
+        FROM ProductionBackup.dbo.Policy P
         INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
               FROM ProductionBackup.dbo.PolicyImage
               WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
@@ -61,6 +75,10 @@ view: pdt_renewals_rollovers {
             ON v1.policy_id = v.policy_id
             AND v1.maxorder = v.billingactivityorder) q
           ON q.policy_id = pim.policy_id
+      LEFT JOIN (Select Policy_id, sum(premium_chg_written) as PremiumChange from ProductionBackup.dbo.PolicyImage
+                  where transtype_id = 3
+                  group by Policy_id having ABS(sum(premium_chg_written)) > 50)  PIE
+          ON PIE.Policy_id = p.policy_id
         LEFT JOIN ProductionBackup.dbo.Policy pp ON pp.rewrittenfrom_policy_id = p.policy_id
         LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRLRO -- Rollover Policy Renewal Offer
           ON PIMRLRO.Policy_id = pp.policy_id
@@ -129,7 +147,20 @@ view: pdt_renewals_rollovers {
     sql: ${TABLE}.CurrentPolicyID ;;
   }
 
+  dimension: current_policyimage_num {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.CurrentPolicyImage ;;
+  }
+
+
   dimension: current_policy {
+    link: {
+      label: "Open in Diamond"
+      url: "https://c76-prod.diamondasaservice.com/DiamondWeb/Employee/Policy/{{ value }}"
+      icon_url: "http://www.insuresoft.com/favicon.ico"
+    }
+    label: "Current Policy Number"
     type: string
     sql: ${TABLE}.CurrentPolicy ;;
   }
@@ -153,6 +184,12 @@ view: pdt_renewals_rollovers {
   }
 
   dimension: rollover_policy {
+    link: {
+      label: "Open in Diamond"
+      url: "https://c76-prod.diamondasaservice.com/DiamondWeb/Employee/Policy/{{ value }}"
+      icon_url: "http://www.insuresoft.com/favicon.ico"
+    }
+    label: "Rollover Policy Number"
     type: string
     sql: ${TABLE}.RolloverPolicy ;;
   }
@@ -223,6 +260,18 @@ view: pdt_renewals_rollovers {
     sql: ${TABLE}.AgencyName ;;
   }
 
+  dimension: premium_movement {
+    label: "Rollover Premium Direction Flag"
+    type: string
+    sql: ${TABLE}.PremiumDiff ;;
+  }
+
+  dimension: endorsement_flag {
+    label: "Endorsement Flag"
+    type: string
+    sql: ${TABLE}.EndorsementFlag ;;
+  }
+
   measure: cancelled {
     label: "Cancelled_Count"
     type: sum
@@ -245,8 +294,13 @@ view: pdt_renewals_rollovers {
     sql: ${TABLE}.NonRenew ;;
   }
 
+  dimension: endorsement_premium_change {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.EndorsementPremiumChange ;;
+  }
   dimension: errors {
-    label: "Rollover Errors"
+    label: "Rollover Error"
     type: string
     sql: CASE WHEN ${TABLE}.RolloverPolicyID is NULL THEN 'No Rollover Replacement Offer or Policy Created'
               ELSE
@@ -276,7 +330,11 @@ view: pdt_renewals_rollovers {
       cancelled,
       cancelled_reason,
       cancelled_date_time,
-      non_renew
+      non_renew,
+      dt_coverage_liab_phys.liab_phys,
+      premium_movement,
+      endorsement_flag,
+      endorsement_premium_change
     ]
   }
 }
