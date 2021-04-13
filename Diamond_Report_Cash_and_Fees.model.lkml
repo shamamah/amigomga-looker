@@ -50,7 +50,8 @@ explore: dt_cash_and_fees {
     fields: []
     relationship: one_to_one
     sql_on: ${policy_image_name_link.policy_id} = ${policy_image.policy_id}
-          AND ${policy_image_name_link.policyimage_num} = ${policy_image.policyimage_num};;
+          AND ${policy_image_name_link.policyimage_num} = ${policy_image.policyimage_num}
+          AND ${policy_image_name_link.nameaddresssource_id}=3;;
   }
 
   join: name {
