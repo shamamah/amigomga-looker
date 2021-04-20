@@ -19,28 +19,74 @@ explore: dt_cash_and_fees {
         AND ${company_state_lob.state_id} = ${dt_cash_and_fees.state_id};;
     }
 
-  join: dt_policyimage_num_unique {
+  join: dt_policyimage_num_unique_current {
+    from: dt_policyimage_num_unique
     type: inner
-    sql_on: ${dt_cash_and_fees.policy_id} = ${dt_policyimage_num_unique.policy_id}
-          AND ${dt_cash_and_fees.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver} ;;
+    sql_on: ${dt_cash_and_fees.policy_id} = ${dt_policyimage_num_unique_current.policy_id}
+          AND ${dt_cash_and_fees.renewal_ver} = ${dt_policyimage_num_unique_current.renewal_ver} ;;
     relationship: one_to_many
   }
 
-  join: policy_image {
+  join: policy_image_current {
+    from: policy_image
     view_label: "Policy"
     type: inner
-    fields: [policy_image.premium_fullterm, policy_image.teff_date, policy_image.texp_date, policy_image.transtype_id, policy_image.policystatuscode_id]
+    fields: [policy_image_current.premium_fullterm, policy_image_current.teff_date, policy_image_current.texp_date, policy_image_current.transtype_id, policy_image_current.policystatuscode_id]
     relationship: one_to_one
-    sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
-      AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
+    sql_on: ${policy_image_current.policy_id} = ${dt_policyimage_num_unique_current.policy_id}
+      AND ${policy_image_current.policyimage_num} = ${dt_policyimage_num_unique_current.policyimage_num};;
+  }
+
+  join: billing_acct_receivable_current {
+    from: billing_acct_receivable
+    view_label: "Policy"
+    type: left_outer
+    fields: [billing_acct_receivable_current.total_outstanding]
+    relationship: one_to_one
+    sql_on:  ${policy_image_current.policy_id} = ${billing_acct_receivable_current.policy_id}
+      AND ${policy_image_current.renewal_ver} = ${billing_acct_receivable_current.renewal_ver};;
+  }
+
+  join: policy {
+    type: inner
+    relationship: one_to_one
+    fields: []
+    sql_on: ${policy_image_current.policy_id} = ${policy.policy_id};;
+  }
+
+  join: dt_policyimage_num_unique_prior {
+    from: dt_policyimage_num_unique
+    type: left_outer
+    sql_on: ${policy.rewrittenfrom_policy_id} = ${dt_policyimage_num_unique_prior.policy_id}
+      AND ${dt_policyimage_num_unique_prior.renewal_ver} = 1;;
+    relationship: one_to_many
+  }
+  join: policy_image_prior {
+    from: policy_image
+    view_label: "Prior Policy"
+    type: left_outer
+    relationship: one_to_many
+    fields: [policy]
+    sql_on: ${policy_image_prior.policy_id} = ${dt_policyimage_num_unique_prior.policy_id}
+    AND ${policy_image_prior.policyimage_num} = ${dt_policyimage_num_unique_prior.policyimage_num};;
+  }
+
+  join: billing_acct_receivable_prior {
+    from: billing_acct_receivable
+    view_label: "Prior Policy"
+    type: left_outer
+    fields: [billing_acct_receivable_prior.total_outstanding]
+    relationship: one_to_one
+    sql_on:  ${policy_image_prior.policy_id} = ${billing_acct_receivable_prior.policy_id}
+      AND ${policy_image_prior.renewal_ver} = ${billing_acct_receivable_prior.renewal_ver};;
   }
 
   join: dt_policy_agency {
     view_label: "Agency"
     type: left_outer
     relationship: one_to_one
-    sql_on:  ${policy_image.policy_id} = ${dt_policy_agency.policy_id}
-          AND ${dt_policy_agency.policyimage_num} = ${policy_image.policyimage_num};;
+    sql_on:  ${policy_image_current.policy_id} = ${dt_policy_agency.policy_id}
+          AND ${dt_policy_agency.policyimage_num} = ${policy_image_current.policyimage_num};;
 
   }
 
@@ -49,8 +95,8 @@ explore: dt_cash_and_fees {
     type: left_outer
     fields: []
     relationship: one_to_one
-    sql_on: ${policy_image_name_link.policy_id} = ${policy_image.policy_id}
-          AND ${policy_image_name_link.policyimage_num} = ${policy_image.policyimage_num}
+    sql_on: ${policy_image_name_link.policy_id} = ${policy_image_current.policy_id}
+          AND ${policy_image_name_link.policyimage_num} = ${policy_image_current.policyimage_num}
           AND ${policy_image_name_link.nameaddresssource_id}=3;;
   }
 
@@ -67,8 +113,8 @@ explore: dt_cash_and_fees {
     type: inner
     fields: [checkbox]
     relationship: one_to_one
-    sql_on: ${policy_image.policy_id} = ${dt_cash_and_fees.policy_id}
-      AND ${policy_image.policyimage_num} = ${dt_cash_and_fees.policyimage_num}
+    sql_on: ${policy_image_current.policy_id} = ${dt_cash_and_fees.policy_id}
+      AND ${policy_image_current.policyimage_num} = ${dt_cash_and_fees.policyimage_num}
       AND ${coverage.detailstatuscode_id} = 1;;
   }
 
@@ -84,7 +130,8 @@ join: reinsurance_treaty {
   view_label: "Treaty"
   type: inner
   relationship: one_to_many
-  sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} and ${reinsurance_treaty.expiration_date} ;;
+  sql_on: ${policy_image_current.eff_date} between ${reinsurance_treaty.effective_date} and ${reinsurance_treaty.expiration_date}
+            AND ${company_state_lob.lob_id} = ${reinsurance_treaty.treatylob};;
 }
 
 }

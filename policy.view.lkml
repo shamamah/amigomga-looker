@@ -60,6 +60,12 @@ view: policy {
     sql: ${TABLE}.nonrenewreason_id ;;
   }
 
+  dimension: rewrittenfrom_policy_id {
+    hidden: no
+    type: number
+    sql: ${TABLE}.rewrittenfrom_policy_id ;;
+  }
+
   dimension: quotesource_id {
     hidden: yes
     type: number

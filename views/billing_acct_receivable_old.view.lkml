@@ -1,4 +1,4 @@
-view: billing_acct_receivable {
+view: billing_acct_receivable_old {
   sql_table_name: dbo.BillingAcctReceivable ;;
 
   dimension_group: added {
