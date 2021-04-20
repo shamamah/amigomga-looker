@@ -66,6 +66,12 @@ view: policy {
     sql: ${TABLE}.rewrittenfrom_policy_id ;;
   }
 
+  dimension: rewrittenfrom_policyimage_num {
+    hidden: no
+    type: number
+    sql: ${TABLE}.rewrittenfrom_policyimage_num ;;
+  }
+
   dimension: quotesource_id {
     hidden: yes
     type: number

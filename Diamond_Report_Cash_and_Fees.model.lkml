@@ -54,21 +54,15 @@ explore: dt_cash_and_fees {
     sql_on: ${policy_image_current.policy_id} = ${policy.policy_id};;
   }
 
-  join: dt_policyimage_num_unique_prior {
-    from: dt_policyimage_num_unique
-    type: left_outer
-    sql_on: ${policy.rewrittenfrom_policy_id} = ${dt_policyimage_num_unique_prior.policy_id}
-      AND ${dt_policyimage_num_unique_prior.renewal_ver} = 1;;
-    relationship: one_to_many
-  }
+
   join: policy_image_prior {
     from: policy_image
     view_label: "Prior Policy"
     type: left_outer
     relationship: one_to_many
     fields: [policy]
-    sql_on: ${policy_image_prior.policy_id} = ${dt_policyimage_num_unique_prior.policy_id}
-    AND ${policy_image_prior.policyimage_num} = ${dt_policyimage_num_unique_prior.policyimage_num};;
+    sql_on: ${policy_image_prior.policy_id} = ${policy.rewrittenfrom_policy_id}
+    AND ${policy_image_prior.policyimage_num} = ${policy.rewrittenfrom_policyimage_num};;
   }
 
   join: billing_acct_receivable_prior {
