@@ -158,6 +158,13 @@ explore: claim_feature {
     fields: [claim_catastrophe.dscr]
   }
 
+  join: dt_claim_tracking_type {
+    view_label: "Claim Detail"
+    type: left_outer
+    relationship: many_to_many
+    sql_on: ${dt_claim_tracking_type.claimcontrol_id} = ${claim_control.claimcontrol_id} ;;
+  }
+
 
   join: version {
     type: inner
