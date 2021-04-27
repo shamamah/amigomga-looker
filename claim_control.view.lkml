@@ -108,6 +108,18 @@ view: claim_control {
     sql: CASE WHEN ${TABLE}.siu_indicator = 1 THEN 'Yes' ELSE 'No' END ;;
   }
 
+  dimension: hit_and_run {
+    label: "Hit&Run Loss"
+    type: string
+    sql: CASE WHEN ${TABLE}.hit_and_run_loss = 1 THEN 'Yes' ELSE 'No' END ;;
+  }
+
+  dimension: single_vehicle {
+    label: "Single Vehicle Loss"
+    type: string
+    sql: CASE WHEN ${TABLE}.single_vehicle_loss = 1 THEN 'Yes' ELSE 'No' END ;;
+  }
+
   dimension: claimreportedbymethod_id {
     type: number
     hidden: yes
