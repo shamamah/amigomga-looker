@@ -102,6 +102,12 @@ view: claim_control {
     sql: ${TABLE}.claimreportedby_id ;;
   }
 
+  dimension: siu_indicator {
+    label: "SIU Indicator"
+    type: string
+    sql: CASE WHEN ${TABLE}.siu_indicator = 1 THEN 'Yes' ELSE 'No' END ;;
+  }
+
   dimension: claimreportedbymethod_id {
     type: number
     hidden: yes

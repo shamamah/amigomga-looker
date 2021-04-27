@@ -5,8 +5,9 @@ view: eop_premium_triangle_treaty_month {
             CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END as policy_month,
             DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
             CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END as Lag_month,
-            DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as trans_month,
-              company_id,
+            CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) as trans_month,
+              xx.company_id,
+        xx.companystatelob_id,
               state_id,
               xx.lob_id,
               lobname,
@@ -15,6 +16,7 @@ view: eop_premium_triangle_treaty_month {
        --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
               CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
               Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+        n.display_name as CompanyName,
               SUM(TotalEarnedPremium) as EarnedPremium,
               SUM(TotalWrittenPremium) as WrittenPremium,
               SUM(TotalUnearnedPremium) as UnearnedPremium
@@ -23,6 +25,7 @@ view: eop_premium_triangle_treaty_month {
                       EMP.YEAR,
                       EMP.Month,
                       V.company_id,
+            V.companystatelob_id,
                       V.state_id,
                       V.lob_id,
                       EMP.coveragecode_id,
@@ -46,6 +49,7 @@ view: eop_premium_triangle_treaty_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -102,6 +106,7 @@ view: eop_premium_triangle_treaty_month {
                   2021,
                   1,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -128,6 +133,7 @@ view: eop_premium_triangle_treaty_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -144,6 +150,7 @@ view: eop_premium_triangle_treaty_month {
                   2021,
                   2,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -169,6 +176,7 @@ view: eop_premium_triangle_treaty_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -186,6 +194,7 @@ UNION ALL
                   2021,
                   3,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -211,6 +220,7 @@ UNION ALL
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -223,7 +233,15 @@ UNION ALL
                   emp.eff_date
                   ) xx
            ON t.lob_id = xx.lob_id
-              AND xx.eff_date between t.eff_date and t.exp_date
+        AND xx.companystatelob_id = t.CompanyStateLob_ID
+                AND xx.eff_date between t.eff_date and t.exp_date
+       JOIN ProductionBackup.dbo.CompanyLob cl
+        ON cl.company_id = xx.company_id
+        AND cl.lob_id = xx.lob_id
+       JOIN ProductionBackup.dbo.CompanyNameLink cnl
+        ON cnl.company_id = cl.company_id
+       JOIN ProductionBackup.dbo.Name n
+        ON n.name_id = cnl.name_id
            INNER JOIN LOB l
                   ON l.lob_id = xx.lob_id
             LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
@@ -242,8 +260,9 @@ UNION ALL
             CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
             DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
             CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
-            DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
-              company_id,
+            CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)),
+              xx.company_id,
+        xx.companystatelob_id,
               state_id,
               xx.lob_id,
               lobname,
@@ -251,7 +270,8 @@ UNION ALL
               caption,
       --        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
               CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-              Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
+              Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')',
+              n.display_name
        ;;
   }
 
@@ -304,7 +324,7 @@ UNION ALL
 
   dimension: trans_month {
     label: "Trans Month"
-    type: number
+    type: string
     full_suggestions: yes
     sql: ${TABLE}.trans_month ;;
   }
@@ -325,6 +345,11 @@ UNION ALL
     type: number
     hidden: yes
     sql: ${TABLE}.company_id ;;
+  }
+
+  dimension: company_name {
+    type: string
+    sql: ${TABLE}.companyname;;
   }
 
   dimension: state_id {

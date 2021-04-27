@@ -6,7 +6,8 @@ view: eop_premium_triangle_treaty_quarter {
             DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 -
             CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) / 3 < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) / 3 END as Lag_quarter,
             DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 as trans_quarter,
-            company_id,
+            xx.company_id,
+      xx.companystatelob_id,
             state_id,
             xx.lob_id,
             lobname,
@@ -16,6 +17,7 @@ view: eop_premium_triangle_treaty_quarter {
             CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
             xx.Renewal_ver,
             Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+      n.display_name as CompanyName,
             SUM(TotalEarnedPremium) as EarnedPremium,
             SUM(TotalWrittenPremium) as WrittenPremium,
             SUM(TotalUnearnedPremium) as UnearnedPremium
@@ -24,6 +26,7 @@ view: eop_premium_triangle_treaty_quarter {
                 EMP.YEAR,
                 EMP.Month,
                 V.company_id,
+        V.companystatelob_id,
                 V.state_id,
                 V.lob_id,
                 EMP.coveragecode_id,
@@ -47,6 +50,7 @@ view: eop_premium_triangle_treaty_quarter {
             EMP.year,
             EMP.month,
             V.company_id,
+      V.companystatelob_id,
             V.state_id,
             V.lob_id,
             EMP.coveragecode_id,
@@ -103,6 +107,7 @@ view: eop_premium_triangle_treaty_quarter {
                   2021,
                   1,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -129,6 +134,7 @@ view: eop_premium_triangle_treaty_quarter {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -145,6 +151,7 @@ view: eop_premium_triangle_treaty_quarter {
                   2021,
                   2,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -170,6 +177,7 @@ view: eop_premium_triangle_treaty_quarter {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -186,6 +194,7 @@ view: eop_premium_triangle_treaty_quarter {
                   2021,
                   3,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -211,6 +220,7 @@ view: eop_premium_triangle_treaty_quarter {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+          V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -224,9 +234,17 @@ view: eop_premium_triangle_treaty_quarter {
 
                   ) xx
                  ON t.lob_id = xx.lob_id
+          AND xx.companystatelob_id = t.CompanyStateLob_ID
                     AND xx.eff_date between t.eff_date and t.exp_date
           INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
+      JOIN ProductionBackup.dbo.CompanyLob cl
+      ON cl.company_id = xx.company_id
+      AND cl.lob_id = xx.lob_id
+      JOIN ProductionBackup.dbo.CompanyNameLink cnl
+      ON cnl.company_id = cl.company_id
+      JOIN ProductionBackup.dbo.Name n
+      ON n.name_id = cnl.name_id
           LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
           JOIN ProductionBackup.dbo.Coverage c
             ON c.policy_id = pim.policy_id
@@ -244,7 +262,8 @@ view: eop_premium_triangle_treaty_quarter {
               DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 -
               CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) / 3 < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) / 3 END,
               DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3,
-              company_id,
+              xx.company_id,
+        xx.companystatelob_id,
               state_id,
               xx.lob_id,
               lobname,
@@ -253,7 +272,8 @@ view: eop_premium_triangle_treaty_quarter {
   --            ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
               CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
               xx.renewal_ver,
-              Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
+              Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')',
+        n.display_name
  ;;
   }
 
@@ -331,6 +351,11 @@ view: eop_premium_triangle_treaty_quarter {
     type: number
     hidden: yes
     sql: ${TABLE}.company_id ;;
+  }
+
+  dimension: company_name {
+    type: string
+    sql: ${TABLE}.companyname ;;
   }
 
   dimension: state_id {
