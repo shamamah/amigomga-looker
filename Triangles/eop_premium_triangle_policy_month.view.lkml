@@ -7,7 +7,7 @@ view: eop_premium_triangle_policy_month {
                 as lag_month,
             DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as trans_month,
             YEAR(xx.eff_date)*100+MONTH(xx.eff_date) as EffMonth,
-              company_id,
+              n.display_name as CompanyName,
               state_id,
               xx.lob_id,
               lobname,
@@ -24,6 +24,7 @@ view: eop_premium_triangle_policy_month {
                       EMP.YEAR,
                       EMP.Month,
                       V.company_id,
+                      V.companystatelob_id,
                       V.state_id,
                       V.lob_id,
                       EMP.coveragecode_id,
@@ -47,6 +48,7 @@ view: eop_premium_triangle_policy_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -65,6 +67,7 @@ view: eop_premium_triangle_policy_month {
                   YEAR(GETDATE()-1) as year,
                   MONTH(GETDATE()-1) as month,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -86,6 +89,7 @@ view: eop_premium_triangle_policy_month {
                     AND V.version_id = CCV.version_id
                 GROUP BY
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -103,6 +107,7 @@ view: eop_premium_triangle_policy_month {
                   2021,
                   1,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -129,6 +134,7 @@ view: eop_premium_triangle_policy_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -145,6 +151,7 @@ view: eop_premium_triangle_policy_month {
                   2021,
                   2,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -170,6 +177,7 @@ view: eop_premium_triangle_policy_month {
                   EMP.year,
                   EMP.month,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -186,6 +194,7 @@ UNION ALL
                   2021,
                   3,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -211,6 +220,7 @@ UNION ALL
                   EMP.year,
                   EMP.month,
                   V.company_id,
+                  V.companystatelob_id,
                   V.state_id,
                   V.lob_id,
                   EMP.coveragecode_id,
@@ -221,11 +231,58 @@ UNION ALL
                   unit_num,
                   policy,
                   emp.eff_date
-                  ) xx
+    UNION ALL
+
+              SELECT
+                  2021,
+                  4,
+                  V.company_id,
+                  V.companystatelob_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+  --                Policyimage_num,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date,
+                  0,
+                  0,
+                  0
+              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
+              INNER JOIN [Version] V WITH(NOLOCK)
+                ON V.version_id = EMP.version_id
+              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
+                ON EMP.coveragecode_id = CCV.coveragecode_id
+                AND V.version_id = CCV.version_id
+              WHERE
+              EMP.year_month_key = '202012'
+              GROUP BY
+                  EMP.year,
+                  EMP.month,
+                  V.company_id,
+                  V.companystatelob_id,
+                  V.state_id,
+                  V.lob_id,
+                  EMP.coveragecode_id,
+                  CCV.caption,
+                  policy_id,
+            --            Policyimage_num,
+                  renewal_ver,
+                  unit_num,
+                  policy,
+                  emp.eff_date) xx
            ON t.lob_id = xx.lob_id
+              AND t.CompanyStateLob_id = xx.CompanyStateLob_id
               AND xx.eff_date between t.eff_date and t.exp_date
            INNER JOIN LOB l
                   ON l.lob_id = xx.lob_id
+           INNER JOIN CompanyNameLink cnl
+                  ON cnl.company_id = xx.company_id
+           INNER JOIN Name n
+                  ON cnl.name_id = n.name_id
             LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
             JOIN ProductionBackup.dbo.Coverage c
               ON c.policy_id = pim.policy_id
@@ -244,7 +301,7 @@ UNION ALL
         ,
         DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
         YEAR(xx.eff_date)*100+MONTH(xx.eff_date),
-        company_id,
+        n.display_name,
         state_id,
         xx.lob_id,
         lobname,
@@ -321,10 +378,10 @@ UNION ALL
 
   # }
 
-  dimension: company_id {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.company_id ;;
+  dimension: company_name {
+    label: "Company Name"
+    type: string
+    sql: ${TABLE}.companyname ;;
   }
 
   dimension: state_id {
