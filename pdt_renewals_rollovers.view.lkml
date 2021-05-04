@@ -43,11 +43,12 @@ view: pdt_renewals_rollovers {
         CASE WHEN PIE.Policy_id is NULL then 'No' ELSE 'Yes' END as EndorsementFlag,
         PremiumChange as EndorsementPremiumChange
       FROM ProductionBackup.dbo.Policy P
-      INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
-            FROM ProductionBackup.dbo.PolicyImage
+      INNER JOIN (Select pim.Policy_id, Max(policyimage_num) policyimage_num
+            FROM ProductionBackup.dbo.PolicyImage PIM
+      --JOIN ProductionBackup.dbo.policy p ON p.policy_id = pim.policy_id
             WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
-            AND policystatuscode_id in (1, 3)
-            GROUP BY Policy_id) MPIM
+      AND policystatuscode_id in (1,3)
+            GROUP BY pim.Policy_id) MPIM
             ON MPIM.Policy_id = P.Policy_id
       INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
         ON PIM.policy_id = MPIM.policy_id
@@ -95,7 +96,7 @@ view: pdt_renewals_rollovers {
               PP.process_date,
               --max(PIM.eff_date),
               --count(1)
-              FV.formversion_id,
+              --FV.formversion_id,
               PP.printevent_id,
               PP.printxml_id,
               PP.policy_id,
@@ -110,18 +111,18 @@ view: pdt_renewals_rollovers {
                 AND PIM.policyimage_num = PP.policyimage_num
             INNER JOIN ProductionBackup.dbo.[Version] V WITH (NOLOCK)
               ON V.version_id = PIM.version_id
-            INNER JOIN ProductionBackup.dbo.PolicyForm PF WITH (NOLOCK)
-              ON PF.policy_id = PP.policy_id
-                AND PF.policyimage_num = PP.policyimage_num
-                AND PF.printxml_id = PP.printxml_id
+            --INNER JOIN ProductionBackup.dbo.PolicyForm PF WITH (NOLOCK)
+            --  ON PF.policy_id = PP.policy_id
+            --    AND PF.policyimage_num = PP.policyimage_num
+            --    AND PF.printxml_id = PP.printxml_id
             INNER JOIN ProductionBackup.dbo.PrintXML PX
               ON PP.policy_id = PX.policy_id
                 AND PP.policyimage_num = PX.policyimage_num
                 AND PP.printxml_id = PX.printxml_id
             INNER JOIN ProductionBackup.dbo.BatchStatus bs ON
                 bs.batchstatus_id = PX.batchstatus_id
-            INNER JOIN ProductionBackup.dbo.FormVersion FV WITH (NOLOCK)
-              ON FV.formversion_id = PF.formversion_id
+            --INNER JOIN ProductionBackup.dbo.FormVersion FV WITH (NOLOCK)
+            --  ON FV.formversion_id = PF.formversion_id
             LEFT OUTER JOIN ProductionBackup.dbo.FutureEvents FE WITH(NOLOCK)
               ON FE.policy_id = PIM.policy_id
             LEFT OUTER JOIN ProductionBackup.dbo.TransReasonVersion TRV WITH (NOLOCK)
@@ -132,8 +133,10 @@ view: pdt_renewals_rollovers {
               ) prt
                 ON  prt.policy_id = PIMRLRO.policy_id
                   AND Pim.exp_date = prt.eff_date
-        WHERE p.Cancel_date > DATEADD(d, -33, PIM.exp_date)
-
+        WHERE
+      (pim.policystatuscode_id = 1
+        OR
+      (pim.policystatuscode_id = 3 and p.Cancel_date >= DATEADD(d, -1, PIM.exp_date)))
      ;;
     sql_trigger_value: Select MAX(pcadded_date) from ProductionBackup.dbo.policyimage;;
     indexes: ["CurrentPolicyID"]
