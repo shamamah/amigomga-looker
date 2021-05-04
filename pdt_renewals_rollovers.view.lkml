@@ -42,16 +42,17 @@ view: pdt_renewals_rollovers {
         END as PremiumDiff,
         CASE WHEN PIE.Policy_id is NULL then 'No' ELSE 'Yes' END as EndorsementFlag,
         PremiumChange as EndorsementPremiumChange
-        FROM ProductionBackup.dbo.Policy P
-        INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
-              FROM ProductionBackup.dbo.PolicyImage
-              WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
-              AND policystatuscode_id in (1, 3)
-              GROUP BY Policy_id) MPIM
-              ON MPIM.Policy_id = P.Policy_id
-          INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
-            ON PIM.policy_id = MPIM.policy_id
-              AND PIM.policyimage_num = MPIM.policyimage_num
+      FROM ProductionBackup.dbo.Policy P
+      INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
+            FROM ProductionBackup.dbo.PolicyImage
+            WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
+            AND policystatuscode_id in (1, 3)
+            GROUP BY Policy_id) MPIM
+            ON MPIM.Policy_id = P.Policy_id
+      INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
+        ON PIM.policy_id = MPIM.policy_id
+          AND PIM.policyimage_num = MPIM.policyimage_num
+          AND PIM.Transtype_id <> 1
       LEFT JOIN ProductionBackup.dbo.TransReason TR on TR.transreason_id = Pim.transreason_id
       INNER JOIN ProductionBackup.dbo.Agency a ON a.agency_id = pim.agency_id
       INNER JOIN ProductionBackup.dbo.AgencyNameLink anl ON a.agency_id = anl.agency_id
@@ -60,10 +61,12 @@ view: pdt_renewals_rollovers {
       INNER JOIN ProductionBackup.dbo.CompanyStateLOB csl ON csl.companystatelob_id = v.companystatelob_id
       INNER JOIN ProductionBackup.dbo.CompanyLOB cl ON csl.companylob_id = cl.companylob_id
           AND cl.company_id = 1 -- Clear SPrings
+    INNER JOIN ProductionBackup.dbo.[PolicyImageNameLink] pnl
+            ON pnl.policy_id = PIM.policy_id
+      AND pnl.policyimage_num = PIM.policyimage_num
+      AND pnl.nameaddresssource_id = 3
       INNER JOIN ProductionBackup.dbo.[Name] PH1 WITH (NOLOCK)
-          ON PH1.policy_id = PIM.policy_id
-          AND PH1.policyimage_num = PIM.policyimage_num
-          AND PH1.nameaddresssource_id = 3
+          ON PH1.name_id = pnl.name_id
       LEFT JOIN (Select policy_id, phone_num,
           ROW_Number() OVER(Partition By POlicy_id  order by policy_id, phonetype_id) as Rownbr
           FROM ProductionBackup.dbo.Phone) ph on ph.policy_id = p.policy_id
@@ -129,7 +132,8 @@ view: pdt_renewals_rollovers {
               ) prt
                 ON  prt.policy_id = PIMRLRO.policy_id
                   AND Pim.exp_date = prt.eff_date
-        WHERE p.Cancel_date > '2021-04-05'
+        WHERE p.Cancel_date > DATEADD(d, -33, PIM.exp_date)
+
      ;;
     sql_trigger_value: Select MAX(pcadded_date) from ProductionBackup.dbo.policyimage;;
     indexes: ["CurrentPolicyID"]
