@@ -49,7 +49,7 @@ view: pdt_renewals_rollovers {
       INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
           FROM ProductionBackup.dbo.PolicyImage
           WHERE exp_date >= '2021-05-01'
-            AND exp_date < CAST(GETDATE() as date)
+            AND exp_date < CAST(GETDATE()+62 as date)
             AND Policy_id > -1
             AND policystatuscode_id in (1,3)
           GROUP BY Policy_id) MPIM
