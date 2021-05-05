@@ -41,7 +41,10 @@ view: pdt_renewals_rollovers {
             END
         END as PremiumDiff,
         CASE WHEN PIE.Policy_id is NULL then 'No' ELSE 'Yes' END as EndorsementFlag,
-        PremiumChange as EndorsementPremiumChange
+        PremiumChange as EndorsementPremiumChange,
+    premium_fullterm_1 RolloverDownpay,
+    lpay.lastpayment,
+    lpay.added_date lastpaydate
       FROM ProductionBackup.dbo.Policy P
       INNER JOIN (Select pim.Policy_id, Max(policyimage_num) policyimage_num
             FROM ProductionBackup.dbo.PolicyImage PIM
@@ -62,7 +65,7 @@ view: pdt_renewals_rollovers {
       INNER JOIN ProductionBackup.dbo.CompanyStateLOB csl ON csl.companystatelob_id = v.companystatelob_id
       INNER JOIN ProductionBackup.dbo.CompanyLOB cl ON csl.companylob_id = cl.companylob_id
           AND cl.company_id = 1 -- Clear SPrings
-    INNER JOIN ProductionBackup.dbo.[PolicyImageNameLink] pnl
+      INNER JOIN ProductionBackup.dbo.[PolicyImageNameLink] pnl
             ON pnl.policy_id = PIM.policy_id
       AND pnl.policyimage_num = PIM.policyimage_num
       AND pnl.nameaddresssource_id = 3
@@ -79,15 +82,29 @@ view: pdt_renewals_rollovers {
             ON v1.policy_id = v.policy_id
             AND v1.maxorder = v.billingactivityorder) q
           ON q.policy_id = pim.policy_id
+    LEFT JOIN (Select bc.Policy_id, amount as lastpayment, added_date from billingcash bc
+          join (select policy_id, max(billingcash_id) maxbcid from billingcash
+            where billingcashtype_id = 1
+            group by policy_id) maxid
+              ON maxid.maxbcid = bc.billingcash_id) lpay
+          ON pim.policy_id = lpay.policy_id
       LEFT JOIN (Select Policy_id, sum(premium_chg_written) as PremiumChange from ProductionBackup.dbo.PolicyImage
                   where transtype_id = 3
                   group by Policy_id having ABS(sum(premium_chg_written)) > 50)  PIE
           ON PIE.Policy_id = p.policy_id
-        LEFT JOIN ProductionBackup.dbo.Policy pp ON pp.rewrittenfrom_policy_id = p.policy_id
-        LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRLRO -- Rollover Policy Renewal Offer
-          ON PIMRLRO.Policy_id = pp.policy_id
-          AND PIMRLRO.Transtype_id in (13, 4)
-        LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRoll  -- Rollover Policy Renewed
+      LEFT JOIN ProductionBackup.dbo.Policy pp ON pp.rewrittenfrom_policy_id = p.policy_id
+      LEFT JOIN (Select policy_id, Max(policyimage_num) as policyimage_num
+                FROM ProductionBackup.dbo.PolicyImage
+                WHERE Transtype_id in (13, 4)
+                GROUP BY policy_id) maxPI
+                    ON maxPI.Policy_id = pp.policy_id
+      LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRLRO -- Rollover Policy Renewal Offer
+          ON maxPI.Policy_id = PIMRLRO.policy_id
+          AND PIMRLRO.policyimage_num = maxPI.policyimage_num
+    LEFT JOIN ProductionBackup.dbo.RenewalOffers RO
+      ON RO.policy_id = PIMRLRO.policy_id
+      AND RO.renewal_ver = PIMRLRO.renewal_ver
+      LEFT JOIN ProductionBackup.dbo.PolicyImage PIMRoll  -- Rollover Policy Renewed
           ON PIMRoll.Policy_id = pp.policy_id
           AND PIMRoll.Transtype_id = 4
 
@@ -137,6 +154,7 @@ view: pdt_renewals_rollovers {
       (pim.policystatuscode_id = 1
         OR
       (pim.policystatuscode_id = 3 and p.Cancel_date >= DATEADD(d, -1, PIM.exp_date)))
+
      ;;
     sql_trigger_value: Select MAX(pcadded_date) from ProductionBackup.dbo.policyimage;;
     indexes: ["CurrentPolicyID"]
@@ -225,6 +243,24 @@ view: pdt_renewals_rollovers {
   dimension: print_batch_status {
     type: string
     sql: ${TABLE}.PrintBatchStatus ;;
+  }
+
+  dimension: rollover_downpay {
+    type: number
+    value_format_name: usd
+    sql: ${TABLE}.rolloverdownpay ;;
+  }
+
+  dimension: lastpayment_amount {
+    type: number
+    value_format_name: usd
+    sql: ${TABLE}.lastpayment ;;
+  }
+
+  dimension: lastpayment_date {
+    type: number
+    value_format_name: usd
+    sql: ${TABLE}.lastpaydate ;;
   }
 
   measure: rolled_over {
