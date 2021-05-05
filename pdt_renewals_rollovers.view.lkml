@@ -46,17 +46,19 @@ view: pdt_renewals_rollovers {
     lpay.lastpayment,
     lpay.added_date lastpaydate
       FROM ProductionBackup.dbo.Policy P
-      INNER JOIN (Select pim.Policy_id, Max(policyimage_num) policyimage_num
-            FROM ProductionBackup.dbo.PolicyImage PIM
-      --JOIN ProductionBackup.dbo.policy p ON p.policy_id = pim.policy_id
-            WHERE exp_date between '2021-05-01' and DATEADD(MS, -2, DATEADD(DAY, 1, CAST(CONVERT(DATETIME, CONVERT(VARCHAR(10), GETDATE()+62, 101)) AS DATETIME)))
-      AND policystatuscode_id in (1,3)
-            GROUP BY pim.Policy_id) MPIM
+      INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
+          FROM ProductionBackup.dbo.PolicyImage
+          WHERE exp_date >= '2021-05-01'
+            AND exp_date < CAST(GETDATE() as date)
+            AND Policy_id > -1
+            AND policystatuscode_id in (1,3)
+          GROUP BY Policy_id) MPIM
             ON MPIM.Policy_id = P.Policy_id
       INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
         ON PIM.policy_id = MPIM.policy_id
-          AND PIM.policyimage_num = MPIM.policyimage_num
-          AND PIM.Transtype_id <> 1
+        AND PIM.policyimage_num = MPIM.policyimage_num
+        AND PIM.Policy_id > -1
+        AND PIM.Transtype_id <> 1
       LEFT JOIN ProductionBackup.dbo.TransReason TR on TR.transreason_id = Pim.transreason_id
       INNER JOIN ProductionBackup.dbo.Agency a ON a.agency_id = pim.agency_id
       INNER JOIN ProductionBackup.dbo.AgencyNameLink anl ON a.agency_id = anl.agency_id
