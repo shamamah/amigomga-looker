@@ -44,7 +44,8 @@ view: billing_acct_receivable {
   }
 
   dimension: total_outstanding {
-    type: string
+    type: number
+    value_format_name: usd
     sql: ${TABLE}.total_outstanding ;;
   }
 
