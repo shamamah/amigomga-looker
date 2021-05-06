@@ -44,12 +44,11 @@ view: pdt_renewals_rollovers {
         PremiumChange as EndorsementPremiumChange,
     premium_fullterm_1 RolloverDownpay,
     lpay.lastpayment,
-    lpay.added_date lastpaydate
+    lpay.lastPaydate lastpaydate
       FROM ProductionBackup.dbo.Policy P
       INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
           FROM ProductionBackup.dbo.PolicyImage
-          WHERE exp_date >= '2021-05-01'
-            AND exp_date < CAST(GETDATE()+62 as date)
+          WHERE exp_date between '2021-05-01' and GETDATE()+62
             AND Policy_id > -1
             AND policystatuscode_id in (1,3)
           GROUP BY Policy_id) MPIM
@@ -58,7 +57,7 @@ view: pdt_renewals_rollovers {
         ON PIM.policy_id = MPIM.policy_id
         AND PIM.policyimage_num = MPIM.policyimage_num
         AND PIM.Policy_id > -1
-        AND PIM.Transtype_id <> 1
+        --AND PIM.Transtype_id <> 1
       LEFT JOIN ProductionBackup.dbo.TransReason TR on TR.transreason_id = Pim.transreason_id
       INNER JOIN ProductionBackup.dbo.Agency a ON a.agency_id = pim.agency_id
       INNER JOIN ProductionBackup.dbo.AgencyNameLink anl ON a.agency_id = anl.agency_id
@@ -77,19 +76,14 @@ view: pdt_renewals_rollovers {
           ROW_Number() OVER(Partition By POlicy_id  order by policy_id, phonetype_id) as Rownbr
           FROM ProductionBackup.dbo.Phone) ph on ph.policy_id = p.policy_id
               and ph.Rownbr = 1
-      JOIN (Select v.policy_id, Balance from  ProductionBackup.dbo.vBillingstatementBalance v
-            JOIN (select policy_id, max(billingactivityorder) maxorder
-                from ProductionBackup.dbo.vBillingstatementBalance
-                group by policy_id) v1
-            ON v1.policy_id = v.policy_id
-            AND v1.maxorder = v.billingactivityorder) q
-          ON q.policy_id = pim.policy_id
-    LEFT JOIN (Select bc.Policy_id, amount as lastpayment, added_date from billingcash bc
-          join (select policy_id, max(billingcash_id) maxbcid from billingcash
-            where billingcashtype_id = 1
-            group by policy_id) maxid
-              ON maxid.maxbcid = bc.billingcash_id) lpay
-          ON pim.policy_id = lpay.policy_id
+      LEFT JOIN (Select policy_id, SUM(CONVERT(MONEY, Balance)) AS balance
+                 FROM ProductionBackup.dbo.vBillingstatement
+         GROUP BY Policy_id) q on q.policy_id = p.policy_id
+      LEFT JOIN (Select policy_id, amount as lastpayment, added_date as lastPaydate,
+          ROW_Number() OVER(Partition By POlicy_id  order by billingcash_id desc) as Rownbr
+      FROM ProductionBackup.dbo.billingcash
+      where billingcashtype_id = 1) lpay on lpay.policy_id = p.policy_id
+             and lpay.Rownbr = 1
       LEFT JOIN (Select Policy_id, sum(premium_chg_written) as PremiumChange from ProductionBackup.dbo.PolicyImage
                   where transtype_id = 3
                   group by Policy_id having ABS(sum(premium_chg_written)) > 50)  PIE
@@ -156,7 +150,8 @@ view: pdt_renewals_rollovers {
       (pim.policystatuscode_id = 1
         OR
       (pim.policystatuscode_id = 3 and p.Cancel_date >= DATEADD(d, -1, PIM.exp_date)))
-
+    and pim.policy_id > -1
+--    and pim.policy = 'GAA10021257'
      ;;
     sql_trigger_value: Select MAX(pcadded_date) from ProductionBackup.dbo.policyimage;;
     indexes: ["CurrentPolicyID"]
