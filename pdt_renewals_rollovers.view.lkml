@@ -255,8 +255,7 @@ view: pdt_renewals_rollovers {
   }
 
   dimension: lastpayment_date {
-    type: number
-    value_format_name: usd
+    type: date
     sql: ${TABLE}.lastpaydate ;;
   }
 
