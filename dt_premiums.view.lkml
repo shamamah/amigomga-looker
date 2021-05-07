@@ -328,14 +328,14 @@ view: dt_premiums {
     label: "Avg Earned"
     type: average
     value_format: "0.##"
-    sql: total_earned_premium ;;
+    sql: ${TABLE}.totalearnedpremium ;;
   }
 
   measure: avgWritten {
     label: "Avg Written"
     type: average
     value_format: "0.##"
-    sql: total_written_premium ;;
+    sql: ${TABLE}.totalwrittenpremium ;;
   }
 
 
