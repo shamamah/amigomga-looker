@@ -23,6 +23,8 @@ view: dt_discount_indicator {
               AND m.policyimage_num = m1.policyimage_num
           AND m1.modifiertype_id in (107,122)
       where
+      m.modifierType_id <> 121
+      AND
       (m.modifierType_id <> 131 or (m.modifiertype_id = 131 and m1.policy_id is null))
     ;;
   }
