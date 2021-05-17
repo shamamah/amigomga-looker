@@ -1,21 +1,29 @@
 view: dt_discount_indicator {
   derived_table: {
-    sql: select pim.policy, pim.policy_id, pim.renewal_ver, Dscr as DiscountType, CASE WHEN Checkboxselected = 1 THEN 'Yes'
-                                                                        ELSE 'No' end as discountind
-          from modifier m
-          join ModifierType mt ON mt.modifiertype_id = m.modifiertype_id
-          join policyimage pim ON m.policy_id = pim.policy_id
-            and pim.policyimage_num = m.policyimage_num
-            and pim.policystatuscode_id = 1
-          join (select policy_id, policyimage_num, modifiertype_id,
-              unit_num, max(modifier_num) maxnum from modifier
-              group by policy_id, policyimage_num, modifiertype_id,
-              unit_num) x
-              ON x.policy_id = m.policy_id
-              AND x.policyimage_num = m.policyimage_num
-              AND x.modifiertype_id = m.modifiertype_id
-              AND x.unit_num = m.unit_num
-              AND x.maxnum = m.modifier_num
+    sql: select pim.policy, pim.policy_id, pim.renewal_ver,
+            Dscr as DiscountType,
+            CASE WHEN m.Checkboxselected = 1 THEN 'Yes'
+              ELSE 'No' end as discountind
+        from modifier m
+        join ModifierType mt ON mt.modifiertype_id = m.modifiertype_id
+        join policyimage pim ON m.policy_id = pim.policy_id
+          and pim.policyimage_num = m.policyimage_num
+          and pim.policystatuscode_id = 1
+        join (select policy_id, policyimage_num, modifiertype_id,
+            unit_num, max(modifier_num) maxnum from modifier
+            group by policy_id, policyimage_num, modifiertype_id,
+            unit_num) x
+            ON x.policy_id = m.policy_id
+            AND x.policyimage_num = m.policyimage_num
+            AND x.modifiertype_id = m.modifiertype_id
+            AND x.unit_num = m.unit_num
+            AND x.maxnum = m.modifier_num
+        Left join modifier m1
+          ON m.policy_id = m1.policy_id
+              AND m.policyimage_num = m1.policyimage_num
+          AND m1.modifiertype_id in (107,122)
+      where
+      (m.modifierType_id <> 131 or (m.modifiertype_id = 131 and m1.policy_id is null))
     ;;
   }
   measure: count {
