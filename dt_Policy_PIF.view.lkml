@@ -6,6 +6,7 @@ view: dt_policy_pif {
             pim.policyimage_num,
             Policy,
             pim.Renewal_ver,
+            pim.agency_id,
             Eff_date,
             Exp_date,
             cast(cast(pim.trans_date as Date) as Datetime) TransDate,
@@ -23,19 +24,35 @@ view: dt_policy_pif {
             premium_chg_written,
             0 as CashCollected,
             0 as ispif,
-            CASE WHEN TransType_id in (1,7) and policystatuscode_id not in (9,10) THEN -1
-              WHEN TransType_id = 2 THEN 1
-              WHEN TransType_id = 4 and policystatuscode_id not in (9,10, 11) --Premium_fullterm > 0
-                                            THEN 1
-              --WHEN TransType_id = 4 and Premium_fullterm = 0  THEN -1  --and policystatuscode_id not in (9, 10)
-              --WHEN TransType_id = 3 THEN 0
-              WHEN TransType_id = 5 and  policystatuscode_id not in (9,10)--Premium_fullterm > 0
-                                            THEN 1
-              --WHEN TransType_id = 5 and Premium_fullterm = 0  THEN -1
-              ELSE 0
-            END as Inforce,
+            CASE WHEN l.lob_id = 1 -- BLUE
+                THEN CASE WHEN TransType_id in (1,7) and policystatuscode_id not in (9,10) THEN -1
+                  WHEN TransType_id = 2 THEN 1
+                  WHEN TransType_id = 4 and policystatuscode_id not in (9,10, 11) --Premium_fullterm > 0
+                                                THEN 1
+                  --WHEN TransType_id = 4 and Premium_fullterm = 0  THEN -1  --and policystatuscode_id not in (9, 10)
+                  --WHEN TransType_id = 3 THEN 0
+                  WHEN TransType_id = 5 and  policystatuscode_id not in (9,10)--Premium_fullterm > 0
+                                                THEN 1
+                  --WHEN TransType_id = 5 and Premium_fullterm = 0  THEN -1
+                  ELSE 0
+                  END
+                ELSE
+                  CASE WHEN TransType_id in (1,7) and policystatuscode_id not in (9) THEN -1
+                  WHEN TransType_id = 2 THEN 1
+                  WHEN TransType_id = 4 and policystatuscode_id not in (9) --Premium_fullterm > 0
+                                                THEN 1
+                  --WHEN TransType_id = 4 and Premium_fullterm = 0  THEN -1  --and policystatuscode_id not in (9, 10)
+                  --WHEN TransType_id = 3 THEN 0
+                  WHEN TransType_id = 5 and  policystatuscode_id not in (9)--Premium_fullterm > 0
+                                                THEN 1
+                  --WHEN TransType_id = 5 and Premium_fullterm = 0  THEN -1
+                  ELSE 0
+                  END
+                END as Inforce,
             GETDATE() CreatedDate
             from ProductionBackup.dbo.policyimage pim
+            INNER JOIN ProductionBackup.dbo.version v ON v.version_id = pim.version_id
+            INNER JOIN ProductionBackup.dbo.lob l ON l.lob_id = v.lob_id
             INNER JOIN ProductionBackup.dbo.Policy P WITH(NOLOCK)
               ON P.policy_id = PIM.policy_id
             INNER JOIN ProductionBackup.dbo.Agency A WITH (NOLOCK)
@@ -52,6 +69,7 @@ view: dt_policy_pif {
             pim.policyimage_num,
             pim.Policy,
             pim.Renewal_ver,
+            pim.agency_id,
             Eff_date,
             Exp_date,
             cast(cast(exp_date as Date) as Datetime),
@@ -102,6 +120,7 @@ view: dt_policy_pif {
             pim.policyimage_num,
             pim.Policy,
             pim.Renewal_ver,
+            pim.agency_id,
             Eff_date,
             Exp_date,
             cast(exp_date as Date),
@@ -137,15 +156,26 @@ view: dt_policy_pif {
     }
 
     dimension: policy {
+      link: {
+        label: "Open in Diamond"
+        url: "https://c76-prod.diamondasaservice.com/DiamondWeb/Employee/Policy/{{ value }}"
+        icon_url: "http://www.insuresoft.com/favicon.ico"
+      }
       type: string
-      sql: ${TABLE}.Policy ;;
+      sql: ${TABLE}.policy ;;
     }
+
 
     dimension: renewal_ver {
       type: number
       sql: ${TABLE}.Renewal_ver ;;
     }
 
+    dimension: agency_id {
+      type: number
+      hidden: yes
+      sql: ${TABLE}.agency_id ;;
+    }
     dimension: eff_date {
       label: "Policy Eff Date"
       type: date
@@ -227,7 +257,7 @@ view: dt_policy_pif {
 
     measure: inforce {
       type: sum
-      sql: ${TABLE}.Inforce ;;
+      sql: CASE WHEN ${TABLE}.TransEffDate < CAST(GETDATE() as Date) THEN ${TABLE}.Inforce ELSE 0 END ;;
     }
 
     set: detail {

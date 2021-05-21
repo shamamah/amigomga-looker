@@ -95,6 +95,11 @@ view: dt_quote {
       sql: ${TABLE}.Policy ;;
     }
 
+    measure: inforce {
+      type: sum
+      sql: ${TABLE}.inforce ;;
+    }
+
     dimension: quote {
       type: string
       sql: ${TABLE}.Quote ;;

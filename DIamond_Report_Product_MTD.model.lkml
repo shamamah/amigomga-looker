@@ -47,6 +47,14 @@ explore: dt_premiums {
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
   }
 
+  join: policy {
+    view_label: "Policy"
+    type:  inner
+    fields: [rollover_rewrite]
+    relationship: one_to_one
+    sql_on:  ${policy_image.policy_id} = ${policy.policy_id};;
+  }
+
   join: v_agency {
     view_label: "Agency"
     type: inner
@@ -194,7 +202,7 @@ explore: dt_premiums {
 
     join: dt_discount_indicator {
       view_label: "Discount"
-      type: full_outer
+      type: left_outer
       relationship: many_to_one
       sql_on: ${dt_discount_indicator.policy_id} = ${dt_policyimage_num_unique.policy_id}
         AND ${dt_discount_indicator.renewal_ver} = ${dt_policyimage_num_unique.renewal_ver};;

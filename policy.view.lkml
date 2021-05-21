@@ -14,6 +14,12 @@ view: policy {
     sql: ${TABLE}.policycurrentstatus_id ;;
   }
 
+  dimension: rollover_rewrite {
+    label: "Rollover/Rewrite Flag"
+    type: string
+    sql: CASE WHEN ${TABLE}.rewrittenfrom_policy <> '' THEN 'Yes' Else 'No' END;;
+  }
+
   dimension_group: cancel_date {
     hidden: yes
     label: "Cancellation"

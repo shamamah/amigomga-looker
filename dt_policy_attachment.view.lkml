@@ -1,7 +1,7 @@
 view: dt_policy_attachment {
   derived_table: {
   sql: Select policy, pim.policy_id,  pim.policyimage_num, a.eff_date,
-      a.filename, a.statuscode_id
+      a.filename, a.statuscode_id, a.is_esign
       FROM policyimage pim
       join PolicyImageAttachmentLink pial ON pial.policy_id = pim.policy_id
         and pial.policyimage_num = pim.policyimage_num
@@ -55,6 +55,14 @@ view: dt_policy_attachment {
     type: number
     sql: ${TABLE}.statuscode_id ;;
   }
+
+
+  measure: is_esign {
+    label: "ESign Doc Count"
+    type: sum
+    sql: ${TABLE}.is_esign;;
+  }
+
 
   set: detail {
     fields: [
