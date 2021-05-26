@@ -6,6 +6,13 @@ include: "*.view"
 fiscal_month_offset: 0
 week_start_day: sunday
 
+datagroup: product_datagroup {
+  sql_trigger: SELECT max(pcadded_date) FROM policy_image;;
+  max_cache_age: "24 hours"
+}
+
+persist_with: product_datagroup
+
 explore: dt_premiums {
   group_label: "Diamond Analytics (REPORT)"
   label: "Product"
