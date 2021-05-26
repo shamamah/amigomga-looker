@@ -7,6 +7,7 @@ fiscal_month_offset: 0
 week_start_day: sunday
 
 datagroup: product_datagroup {
+  label: "Product Datagroup"
   sql_trigger: SELECT max(pcadded_date) FROM policyimage;;
   max_cache_age: "24 hours"
 }
