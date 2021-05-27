@@ -44,6 +44,11 @@ view: reinsurance_treaty {
       sql: ${TABLE}.treatylob ;;
     }
 
+    dimension: company_state_lob_id {
+      hidden: yes
+      sql: ${TABLE}.companystatelob_id ;;
+    }
+
     dimension: effective_date {
       type: date
       hidden: yes

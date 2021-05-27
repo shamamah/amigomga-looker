@@ -49,7 +49,7 @@ explore: dt_premiums {
     view_label: "Policy"
     type: inner
     fields: [policy_number, renewal_ver, new_renewal, eff_date, eff_quarter, exp_date, premium_written,
-        policy_image.unique_count]
+        unique_count]
     relationship: one_to_one
     sql_on: ${policy_image.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${policy_image.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
@@ -242,7 +242,8 @@ explore: dt_premiums {
       relationship: one_to_many
       sql_on: ${policy_image.eff_date} between ${reinsurance_treaty.effective_date} AND
                                         ${reinsurance_treaty.expiration_date}
-              AND ${reinsurance_treaty.treatylob} = ${dt_premiums.lob_id} ;;
+              AND ${reinsurance_treaty.treatylob} = ${dt_premiums.lob_id}
+              AND ${company_state_lob.companystatelob_id} = ${reinsurance_treaty.company_state_lob_id};;
 
     }
 
