@@ -299,8 +299,8 @@ view: dt_premiums {
             z.policy,
             z.eff_date
     ;;
-    # sql_trigger_value: Select Max(pcadded_date) as maxdate from policyimage ;;
-    # indexes: ["year", "month", "policy_id", "coveragecode_id", "unit_num"]
+    sql_trigger_value: Select Max(pcadded_date) as maxdate from policyimage ;;
+    indexes: ["year", "month", "policy_id", "coveragecode_id", "unit_num"]
   }
 
 
