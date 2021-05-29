@@ -228,7 +228,7 @@ view: policy_image {
 
   set: policyimage_drill {
     fields: [
-      policy,
+      policy_number,
       eff_date,
       exp_date,
       premium_written

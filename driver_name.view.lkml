@@ -150,8 +150,8 @@ view: driver_name {
   dimension: fdl {
     label: "FDL/USDL"
     type: string
-    sql: CASE WHEN ${TABLE}.dlstate_id = 310 or ${TABLE}.dln = ''
-                  or (${TABLE}.dlstate_id = 11 and LEFT(dln, 1) <> '0')
+    sql: CASE WHEN ${TABLE}.dlstate_id not between 1 and 60 AND
+                ${TABLE}.dlstate_id not in (285, 297)
                   THEN 'FDL' ELSE 'USDL' END ;;
   }
 

@@ -78,6 +78,8 @@ view: dt_mtd_claims {
           loss_date,
           cfs.dscr
        ;;
+    sql_trigger_value: Select max(pcadded_date) from policyimage ;;
+    indexes: ["policy_id", "renewal_ver"]
     }
 
 

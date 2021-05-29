@@ -28,6 +28,17 @@ explore: dt_premiums {
         AND ${company_state_lob.state_id} = ${dt_premiums.state_id};;
   }
 
+  aggregate_table: written_earned_by_treaty_coverage_liab_phys {
+    query: {
+      dimensions: [company_state_lob.commercial_name1, company_state_lob.lobname, dt_coverage_liab_phys.liab_phys, reinsurance_treaty.treatyname, coverage_code.dscr]
+      measures: [dt_premiums.total_earned_premium, dt_premiums.total_written_premium, dt_mtd_claims.incurred_net_pd_ss]
+    }
+
+    materialization: {
+      sql_trigger_value: SELECT CAST(GETDATE());;
+    }
+  }
+
     #-----------------------------------------------------------
   join: dt_policyimage_num_unique {
     view_label: "TEST"
@@ -99,6 +110,29 @@ explore: dt_premiums {
     sql_on: ${policy_current_status.policycurrentstatus_id} = ${policy_image.policystatuscode_id};;
   }
 
+  join: dt_vehicle_count {
+    view_label: "Policy"
+    type:  inner
+    relationship: one_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_vehicle_count.policy_id}
+    AND ${policy_image.policyimage_num} = ${dt_vehicle_count.policyimage_num};;
+  }
+
+  join: dt_driver_count {
+    view_label: "Policy"
+    type:  inner
+    relationship: one_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_driver_count.policy_id}
+      AND ${policy_image.policyimage_num} = ${dt_driver_count.policyimage_num};;
+  }
+
+  join: dt_excluded_driver_count {
+    view_label: "Policy"
+    type:  inner
+    relationship: one_to_one
+    sql_on: ${policy_image.policy_id} = ${dt_excluded_driver_count.policy_id}
+      AND ${policy_image.policyimage_num} = ${dt_excluded_driver_count.policyimage_num};;
+  }
 
   join: dt_quote_source {
     view_label: "Policy"
@@ -128,7 +162,7 @@ explore: dt_premiums {
   join: vehicle {
     view_label: "Vehicle"
     type: inner
-    fields: [vehicle.year, vehicle.make, vehicle.model, vehicle.class_code, vehicle.isocollisionsymbol]
+    fields: [vehicle.year, vehicle.make, vehicle.model, vehicle.class_code, vehicle.multi_car, vehicle.isocollisionsymbol]
     relationship: one_to_many
     sql_on: ${vehicle.policy_id} = ${dt_policyimage_num_unique.policy_id}
           AND  ${vehicle.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num};;
