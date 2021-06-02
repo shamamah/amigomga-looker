@@ -31,7 +31,7 @@ explore: dt_cash_and_fees {
     from: policy_image
     view_label: "Policy"
     type: inner
-    fields: [policy_image_current.premium_fullterm, policy_image_current.teff_date, policy_image_current.texp_date, policy_image_current.transtype_id, policy_image_current.policystatuscode_id]
+    fields: [policy_image_current.policy, policy_image_current.premium_fullterm, policy_image_current.teff_date, policy_image_current.texp_date, policy_image_current.transtype_id, policy_image_current.policystatuscode_id]
     relationship: one_to_one
     sql_on: ${policy_image_current.policy_id} = ${dt_policyimage_num_unique_current.policy_id}
       AND ${policy_image_current.policyimage_num} = ${dt_policyimage_num_unique_current.policyimage_num};;
