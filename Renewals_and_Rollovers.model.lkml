@@ -21,4 +21,12 @@ explore: pdt_renewals_rollovers {
     sql_on: ${pdt_renewals_rollovers.current_policy_id} = ${dt_coverage_liab_phys.policy_id}
       AND ${pdt_renewals_rollovers.current_policyimage_num} = ${dt_coverage_liab_phys.policyimage_num};;
   }
+
+  join: dt_mtd_claims {
+    view_label: "Claim"
+    type: left_outer
+    relationship: many_to_one
+    sql_on: ${pdt_renewals_rollovers.current_policy_id} = ${dt_mtd_claims.policy_id};;
+      # AND ${pdt_renewals_rollovers.current_policyimage_num} = ${dt_mtd_claims.policyimage_num};;
+  }
 }
