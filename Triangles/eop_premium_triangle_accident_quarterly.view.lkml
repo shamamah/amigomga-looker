@@ -91,7 +91,7 @@ view: eop_premium_triangle_accident_quarterly {
     dimension: itd_premiums_primarykey {
       primary_key: yes
       hidden: yes
-      sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.Policy_quarter, ' ', ${TABLE}.NewRen)
+      sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.Policy_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Company_ID)
         ;;
     }
 

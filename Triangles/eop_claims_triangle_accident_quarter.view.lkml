@@ -81,6 +81,7 @@ view: eop_claims_triangle_accident_quarter {
                 ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
             INNER JOIN Customer_Reports.dbo.Treaty t
                   ON t.lob_id = v.lob_id
+                  AND v.companystatelob_id = t.companystatelob_id
                   AND PolicyImage.eff_date between t.eff_date and t.exp_date
               WHERE
                 CFE.claimeoplevel_id = 3
@@ -134,7 +135,7 @@ view: eop_claims_triangle_accident_quarter {
     hidden: yes
     # sql: CONCAT(${TABLE}.policy, ' ', ${TABLE}.renewal_ver, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.vehicle_num, ' ',
     #                   ${TABLE}.w_quarter)  ;;
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.accident_quarter, ' ', ${TABLE}.NewRen);;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.accident_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Company_id);;
   }
 
 

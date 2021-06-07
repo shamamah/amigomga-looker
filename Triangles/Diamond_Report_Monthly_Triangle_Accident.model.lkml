@@ -17,6 +17,7 @@ explore: eop_premium_triangle_accident_month {
          AND ${eop_claims_triangle_accident_month.lag_month} = ${eop_premium_triangle_accident_month.lag_month}
         AND ${eop_claims_triangle_accident_month.coveragecode_id} = ${eop_premium_triangle_accident_month.coveragecode_id}
         AND ${eop_claims_triangle_accident_month.lob_id} = ${eop_premium_triangle_accident_month.lob_id}
+        AND ${eop_claims_triangle_accident_month.company_id} = ${eop_premium_triangle_accident_month.company_id}
         AND ${eop_claims_triangle_accident_month.new_renewal} = ${eop_premium_triangle_accident_month.new_renewal};;
 #       AND ${eop_claims_triangle_quarter.liab_full} = ${eop_premium_triangle_quarter.liab_full}
 
@@ -31,6 +32,7 @@ explore: eop_premium_triangle_accident_month {
          AND ${eop_premium_triangle_accident_month.lag_month} = ${eop_claimcounts_triangle_accident_month.lagmonth}
         AND ${eop_premium_triangle_accident_month.coveragecode_id} = ${eop_claimcounts_triangle_accident_month.coveragecode_id}
         AND ${eop_premium_triangle_accident_month.lob_id} = ${eop_claimcounts_triangle_accident_month.lob_id}
+        AND ${eop_premium_triangle_accident_month.company_id} = ${eop_claimcounts_triangle_accident_month.company_id}
         AND ${eop_premium_triangle_accident_month.new_renewal} = ${eop_claimcounts_triangle_accident_month.new_ren};;
 #       AND ${eop_claims_triangle_quarter.liab_full} = ${eop_premium_triangle_quarter.liab_full}
 

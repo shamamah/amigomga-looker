@@ -8,8 +8,8 @@ view: eop_claimcounts_triangle_policy_month {
             as lag_month,
             DATEDIFF(m, '2019-05-01', ProcessingDate) as trans_month,
             YEAR(z.eff_date)*100+MONTH(z.eff_date) as EffMonth,
-            company_id,
-            state_id,
+            z.company_id,
+            z.state_id,
             z.lob_id,
             CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END as coveragecode_id,
             CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END as caption,
@@ -95,17 +95,22 @@ view: eop_claimcounts_triangle_policy_month {
               AND cc.claimant_num = ct.claimant_num
               AND cc.claimfeature_num = ct.claimfeature_num
               AND Year(cc.StatusDate)*100+Month(cc.statusdate) = ct.Trans_Month) z
-  LEFT JOIN Customer_reports.dbo.Treaty t
-    ON z.eff_date between t.eff_date and t.exp_date
-    AND z.lob_id = t.lob_id
+      JOIN vVersion v ON
+          v.company_id = z.company_id
+          AND v.lob_id = z.lob_id
+          AND v.state_id = z.state_id
+      JOIN customer_reports.dbo.treaty t ON
+          t.lob_id = z.lob_id
+          AND v.companystatelob_id = t.CompanyStateLob_ID
+          AND z.eff_date between t.eff_date and t.exp_date
  -- WHERE z.loss_date > z.eff_date
     GROUP BY
     CASE WHEN DATEDIFF(m, '2019-05-01', z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', z.eff_date) END,
   CASE WHEN DATEDIFF(m, z.eff_date, ProcessingDate) < 0 THEN 0 ELSE DATEDIFF(m, z.eff_date, ProcessingDate) END,    --CASE WHEN DATEDIFF(m, '2019-05-01', z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', z.eff_date) END,
     DATEDIFF(m, '2019-05-01', ProcessingDate),
     YEAR(z.eff_date)*100+MONTH(z.eff_date),
-        company_id,
-        state_id,
+        z.company_id,
+        z.state_id,
         z.lob_id,
         CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
         CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,

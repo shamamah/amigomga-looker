@@ -18,7 +18,8 @@ explore: eop_premium_triangle_accident_quarterly {
          AND ${eop_claims_triangle_accident_quarter.lag_year_quarter} = ${eop_premium_triangle_accident_quarterly.lag_year_quarter}
         AND ${eop_claims_triangle_accident_quarter.coveragecode_id} = ${eop_premium_triangle_accident_quarterly.coveragecode_id}
         AND ${eop_claims_triangle_accident_quarter.lob_id} = ${eop_premium_triangle_accident_quarterly.lob_id}
-        AND ${eop_claims_triangle_accident_quarter.new_renewal} = ${eop_premium_triangle_accident_quarterly.new_renewal};;
+        AND ${eop_claims_triangle_accident_quarter.new_renewal} = ${eop_premium_triangle_accident_quarterly.new_renewal}
+        AND ${eop_claims_triangle_accident_quarter.company_id} = ${eop_premium_triangle_accident_quarterly.company_id};;
 #       AND ${eop_claims_triangle_quarter.liab_full} = ${eop_premium_triangle_quarter.liab_full}
 
     }
