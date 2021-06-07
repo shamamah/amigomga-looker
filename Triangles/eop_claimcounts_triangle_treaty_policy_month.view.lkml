@@ -5,8 +5,8 @@ view: eop_claimcounts_triangle_treaty_policy_month {
             DATEDIFF(m, t.eff_date, ProcessingDate)  -
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END as lag_month,
 --            DATEDIFF(m, '2019-05-01', ProcessingDate) as trans_month,
-            company_id,
-            state_id,
+            z.company_id,
+            z.state_id,
             z.lob_id,
             CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END as coveragecode_id,
             CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END as caption,
@@ -92,18 +92,22 @@ FROM  (select
               AND cc.claimant_num = ct.claimant_num
               AND cc.claimfeature_num = ct.claimfeature_num
               AND Year(cc.StatusDate)*100+Month(cc.statusdate) = ct.Trans_Month) z
+      JOIN vVersion v ON
+          v.company_id = z.company_id
+          AND v.lob_id = z.lob_id
+          AND v.state_id = z.state_id
       JOIN customer_reports.dbo.treaty t ON
-        t.lob_id = z.lob_id
-        AND z.eff_date between t.eff_date and t.exp_date
-
+          t.lob_id = z.lob_id
+          AND v.companystatelob_id = t.CompanyStateLob_ID
+          AND z.eff_date between t.eff_date and t.exp_date
     GROUP BY
      Treaty_Month,
     CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
     DATEDIFF(m, t.eff_date, ProcessingDate)  -
     CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
 --    DATEDIFF(m, '2019-05-01', ProcessingDate),
-        company_id,
-        state_id,
+        z.company_id,
+        z.state_id,
         z.lob_id,
         CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
         CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,

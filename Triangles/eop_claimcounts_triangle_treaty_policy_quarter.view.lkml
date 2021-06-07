@@ -79,9 +79,14 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
             0 as paid
     FROM Customer_Reports.dbo.ClaimCountsRolling
     WHERE PeriodTrans <> YEAR(GETDATE())*100+MONTH(GETDATE())) a) z
+    JOIN vVersion v ON
+        v.company_id = z.company_id
+        AND v.lob_id = z.lob_id
+        AND v.state_id = z.state_id
     JOIN customer_reports.dbo.treaty t ON
-      t.lob_id = z.lob_id
-      AND z.eff_date between t.eff_date and t.exp_date
+        t.lob_id = z.lob_id
+        AND v.companystatelob_id = t.CompanyStateLob_ID
+        AND z.eff_date between t.eff_date and t.exp_date
     JOIN
       (SELECT lob_id, periodtrans from customer_reports.dbo.TreatyQuarter
           UNION ALL

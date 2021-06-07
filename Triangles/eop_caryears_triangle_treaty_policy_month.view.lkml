@@ -22,79 +22,58 @@ view: eop_caryears_triangle_treaty_policy_month {
         --SUM(TotalUnearnedPremium) as UnearnedPremium
         FROM  Customer_Reports.dbo.Treaty t
         LEFT JOIN (SELECT
-                      EMP.YEAR,
-                      EMP.Month,
-                      V.company_id,
-                      V.state_id,
-                      V.lob_id,
-                      EMP.coveragecode_id,
-                      CCV.caption,
+                      YEAR,
+                      Month,
+                      company_id,
+                      companystatelob_id,
+                      state_id,
+                      lob_id,
+                      coveragecode_id,
+                      caption,
                       policy_id,
-      --                Policyimage_num,
                       renewal_ver,
                       unit_num,
                       policy,
-                      emp.eff_date,
-                      CAST(SUM(exposure_earned_days_mtd) as float) as eDays,
-                      CAST(SUM(exposure_written_days_mtd) as float) as wDays,
-                      ROUND(CAST(CAST(SUM(exposure_earned_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4)  AS ECY,
-                      ROUND(CAST(CAST(SUM(exposure_written_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4) as WCY
-          --SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-              FROM EOPMonthlyExposuresCoverage EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              GROUP BY
-                EMP.year,
-                EMP.month,
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-          --            Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date,
-                emp.exp_date
-                ) xx
-                  ON t.lob_id = xx.lob_id
-                  AND xx.eff_date between t.eff_date and t.exp_date
---                  AND xx.caption in ('Property Damage', 'Collision')
-    INNER JOIN LOB l
-            ON l.lob_id = xx.lob_id
-    LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem
-                FROM PolicyImage PIM
-                JOIN ProductionBackup.dbo.Coverage c
-                  ON c.policy_id = pim.policy_id
-                  AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
-                JOIN ProductionBackup.dbo.coveragecode cc
-                  on cc.coveragecode_id = c.coveragecode_id
-                  and cc.coveragetype = 'PhysicalDamage'
-                GROUP by c.Policy_id, pim.renewal_ver
-                  HAVING SUM(c.premium_fullterm) > 0) cc1
-                    ON xx.policy_id = cc1.policy_id
-                    AND xx.renewal_ver = cc1.renewal_ver
-    GROUP BY
-    DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
-    CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
-    DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
-    CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
-    DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
-    company_id,
-    state_id,
-    xx.lob_id,
-    lobname,
-    coveragecode_id,
-    caption,
---        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
-    CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-    Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
-     ;;
+                      eff_date,
+                      eDays,
+                      wDays,
+                      ECY,
+                      WCY
+                  FROM Customer_Reports.dbo.PolicyExposure
+                  WHERE year_month_key < YEAR(GETDATE()-1)*100+MONTH(GETDATE()-1)
+                   ) xx
+                      ON t.lob_id = xx.lob_id
+                      AND xx.companystatelob_id = t.companystatelob_id
+                      AND xx.eff_date between t.eff_date and t.exp_date
+        INNER JOIN LOB l
+                ON l.lob_id = xx.lob_id
+        LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem
+                    FROM PolicyImage PIM
+                    JOIN ProductionBackup.dbo.Coverage c
+                      ON c.policy_id = pim.policy_id
+                      AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
+                    JOIN ProductionBackup.dbo.coveragecode cc
+                      on cc.coveragecode_id = c.coveragecode_id
+                      and cc.coveragetype = 'PhysicalDamage'
+                    GROUP by c.Policy_id, pim.renewal_ver
+                      HAVING SUM(c.premium_fullterm) > 0) cc1
+                        ON xx.policy_id = cc1.policy_id
+                        AND xx.renewal_ver = cc1.renewal_ver
+        GROUP BY
+        DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
+        CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
+        DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') -
+        CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) END,
+        DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
+        company_id,
+        state_id,
+        xx.lob_id,
+        lobname,
+        coveragecode_id,
+        caption,
+        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
+         ;;
   }
 
 

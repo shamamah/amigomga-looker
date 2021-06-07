@@ -73,6 +73,7 @@ view: eop_claims_triangle_treaty_quarter {
               ON V.version_id = COALESCE(PP.version_id, PolicyImage.version_id)
             INNER JOIN Customer_Reports.dbo.Treaty t
                   ON t.lob_id = v.lob_id
+                  AND v.companystatelob_id = t.CompanyStateLob_ID
                   AND PolicyImage.eff_date between t.eff_date and t.exp_date
             WHERE
               CFE.claimeoplevel_id = 3

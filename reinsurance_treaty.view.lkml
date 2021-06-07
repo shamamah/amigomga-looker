@@ -14,7 +14,7 @@ view: reinsurance_treaty {
               UNION ALL
               Select 2 as ID, 1 as treatynumber, 'Georgia 5/1/2021 CM' as treatyname, 2 as treatylob, 7 as companystatelob_id, '2021-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
               UNION ALL
-              Select 3 as ID, 2 as treatynumber, 'Georgia 5/1/2021 CM' as treatyname, 1 as treatylob, 8 as companystatelob_id, '2021-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
+              Select 3 as ID, 1 as treatynumber, 'Alabama 5/1/2021 CM' as treatyname, 3 as treatylob, 8 as companystatelob_id, '2021-05-01 00:00:00' as EffectiveDate, '2099-04-30 23:59:59' as ExpirationDate
                ;;
     }
 

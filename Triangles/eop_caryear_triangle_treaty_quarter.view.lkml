@@ -1,6 +1,7 @@
 view: eop_caryear_triangle_treaty_quarter {
   derived_table: {
-    sql:  SELECT
+    sql:
+        SELECT
         DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 as treaty_quarter,
         CASE WHEN DATEDIFF(m, t.eff_date, xx.eff_date) / 3 < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, xx.eff_date) / 3 END as policy_quarter,
         DATEDIFF(m, t.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') / 3 -
@@ -23,48 +24,29 @@ view: eop_caryear_triangle_treaty_quarter {
         --SUM(TotalUnearnedPremium) as UnearnedPremium
     FROM  Customer_Reports.dbo.Treaty t
     LEFT JOIN (SELECT
-                  EMP.YEAR,
-                  EMP.Month,
-                  V.company_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
+                  YEAR,
+                  Month,
+                  company_id,
+                  companystatelob_id,
+                  state_id,
+                  lob_id,
+                  coveragecode_id,
+                  caption,
                   policy_id,
-  --                Policyimage_num,
                   renewal_ver,
                   unit_num,
                   policy,
-                  emp.eff_date,
-          CAST(SUM(exposure_earned_days_mtd) as float) as eDays,
-          CAST(SUM(exposure_written_days_mtd) as float) as wDays,
-          ROUND(CAST(CAST(SUM(exposure_earned_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4)  AS ECY,
-          ROUND(CAST(CAST(SUM(exposure_written_days_mtd) as float)/(CAST(datediff(d, emp.eff_date, emp.exp_date)*2 as float)) as float), 4) as WCY
-          --SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-              FROM EOPMonthlyExposuresCoverage EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              GROUP BY
-                EMP.year,
-                EMP.month,
-                V.company_id,
-                V.state_id,
-                V.lob_id,
-                EMP.coveragecode_id,
-                CCV.caption,
-                policy_id,
-          --            Policyimage_num,
-                renewal_ver,
-                unit_num,
-                policy,
-                emp.eff_date,
-        emp.exp_date
-            ) xx
-                  ON t.lob_id = xx.lob_id
-                  AND xx.eff_date between t.eff_date and t.exp_date
+                  eff_date,
+                  eDays,
+                  wDays,
+                  ECY,
+                  WCY
+              FROM Customer_Reports.dbo.PolicyExposure
+              WHERE year_month_key < YEAR(GETDATE()-1)*100+MONTH(GETDATE()-1)
+               ) xx
+              ON t.lob_id = xx.lob_id
+              AND t.companystatelob_id = xx.companystatelob_id
+              AND xx.eff_date between t.eff_date and t.exp_date
   --        AND xx.caption in ('Property Damage', 'Collision')
     INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
@@ -96,6 +78,7 @@ view: eop_caryear_triangle_treaty_quarter {
     CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
     Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')',
     xx.Renewal_ver
+
 ;;
   }
 
@@ -103,7 +86,7 @@ view: eop_caryear_triangle_treaty_quarter {
   dimension: itd_premiums_primarykey {
     primary_key: yes
     hidden: yes
-    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.policy_quarter, ' ', ${TABLE}.treaty_quarter, ' ', ${TABLE}.lag_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Renewal_ver)       ;;
+    sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.policy_quarter, ' ', ${TABLE}.treaty_quarter, ' ', ${TABLE}.lag_quarter, ' ', ${TABLE}.NewRen, ' ', ${TABLE}.Renewal_ver, ' ', ${TABLE}.treaty)       ;;
 #  sql: CONCAT(${TABLE}.lob_id, ' ', ${TABLE}.coveragecode_id, ' ', ${TABLE}.w_quarter, ' ', ${TABLE}.quarterID, ' ', ${TABLE}.treaty, ' ', ${TABLE}.NewRen)
 
   }

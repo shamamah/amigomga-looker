@@ -5,7 +5,7 @@ view: eop_claims_triangle_treaty_policy_month {
               CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) END as policy_month,
               DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01')  -
               CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) END as lag_month,
-              DATEDIFF(m, '2019-05-01', CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01') as trans_month,
+              CAST(CFE.year as varchar(4)) + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) as trans_month,
               --clf.dscr as at_fault,
               V.company_id,
               V.state_id,
@@ -74,6 +74,7 @@ view: eop_claims_triangle_treaty_policy_month {
             INNER JOIN LOB l on l.lob_id = v.lob_id
           INNER JOIN Customer_Reports.dbo.Treaty t
                 ON t.lob_id = v.lob_id
+                AND v.companystatelob_id = t.CompanyStateLob_ID
                 AND PolicyImage.eff_date between t.eff_date and t.exp_date
       WHERE
       CFE.claimeoplevel_id = 3
@@ -83,7 +84,7 @@ view: eop_claims_triangle_treaty_policy_month {
         CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) END,
         DATEDIFF(m, t.eff_date, CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01')  -
         CASE WHEN DATEDIFF(m, t.eff_date, PolicyImage.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, PolicyImage.eff_date) END,
-        DATEDIFF(m, '2019-05-01', CAST(CFE.year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)) + '-01'),
+        CAST(CFE.year as varchar(4)) + CAST(RIGHT('00' + CAST(CFE.month as varchar(2)), 2) as varchar(2)),
           V.company_id,
           V.state_id,
           V.lob_id,

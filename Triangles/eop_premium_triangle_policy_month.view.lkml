@@ -7,309 +7,71 @@ view: eop_premium_triangle_policy_month {
                 as lag_month,
             DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') as trans_month,
             YEAR(xx.eff_date)*100+MONTH(xx.eff_date) as EffMonth,
-              n.display_name as CompanyName,
+            n.display_name as CompanyName,
+            state_id,
+            xx.lob_id,
+            lobname,
+            coveragecode_id,
+            caption,
+     --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
+            CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+            Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+            SUM(TotalEarnedPremium) as EarnedPremium,
+            SUM(TotalWrittenPremium) as WrittenPremium,
+            SUM(TotalUnearnedPremium) as UnearnedPremium
+          FROM  Customer_Reports.dbo.Treaty t
+          LEFT JOIN (SELECT
+              YEAR,
+              Month,
+              company_id,
+              companystatelob_id,
               state_id,
-              xx.lob_id,
-              lobname,
+              lob_id,
               coveragecode_id,
               caption,
-       --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-              CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
-              Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
-              SUM(TotalEarnedPremium) as EarnedPremium,
-              SUM(TotalWrittenPremium) as WrittenPremium,
-              SUM(TotalUnearnedPremium) as UnearnedPremium
-          FROM  Customer_Reports.dbo.Treaty t
-              LEFT JOIN (SELECT
-                      EMP.YEAR,
-                      EMP.Month,
-                      V.company_id,
-                      V.companystatelob_id,
-                      V.state_id,
-                      V.lob_id,
-                      EMP.coveragecode_id,
-                      CCV.caption,
-                      policy_id,
-      --                Policyimage_num,
-                      renewal_ver,
-                      unit_num,
-                      policy,
-                      emp.eff_date,
-                      SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
-                      SUM(EMP.premium_written_mtd) AS TotalWrittenPremium,
-                      SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-                FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
-                INNER JOIN [Version] V WITH(NOLOCK)
-                  ON V.version_id = EMP.version_id
-                INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                  ON EMP.coveragecode_id = CCV.coveragecode_id
-                    AND V.version_id = CCV.version_id
-                GROUP BY
-                  EMP.year,
-                  EMP.month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-      --            Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date
-
-
-                UNION ALL
-
-                SELECT
-                  YEAR(GETDATE()-1) as year,
-                  MONTH(GETDATE()-1) as month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-       --           Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date,
-                  SUM(EMP.premium_earned_mtd) AS TotalEarnedPremium,
-                  SUM(EMP.premium_written_mtd) AS TotalWrittenPremium,
-            SUM(EMP.premium_unearned) AS TotalUnearnedPremium
-                FROM EOPPremiums EMP WITH(NOLOCK)
-                INNER JOIN [Version] V WITH(NOLOCK)
-                  ON V.version_id = EMP.version_id
-                INNER JOIN .CoverageCodeVersion CCV WITH(NOLOCK)
-                  ON EMP.coveragecode_id = CCV.coveragecode_id
-                    AND V.version_id = CCV.version_id
-                GROUP BY
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-        --          Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date
-
-                      UNION ALL
-
-              SELECT
-                  2021,
-                  1,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-  --                Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date,
-                  0,
-                  0,
-                  0
-              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-
-              WHERE
-              EMP.year_month_key = '202012'
-              GROUP BY
-                  EMP.year,
-                  EMP.month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date
-
-    UNION ALL
-
-              SELECT
-                  2021,
-                  2,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-  --                Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date,
-                  0,
-                  0,
-                  0
-              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              WHERE
-              EMP.year_month_key = '202012'
-              GROUP BY
-                  EMP.year,
-                  EMP.month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-            --            Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date
-UNION ALL
-
-              SELECT
-                  2021,
-                  3,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-  --                Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date,
-                  0,
-                  0,
-                  0
-              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              WHERE
-              EMP.year_month_key = '202012'
-              GROUP BY
-                  EMP.year,
-                  EMP.month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-            --            Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date
-    UNION ALL
-
-              SELECT
-                  2021,
-                  4,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-  --                Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date,
-                  0,
-                  0,
-                  0
-              FROM EOPMonthlyPremiums EMP WITH(NOLOCK)
-              INNER JOIN [Version] V WITH(NOLOCK)
-                ON V.version_id = EMP.version_id
-              INNER JOIN CoverageCodeVersion CCV WITH(NOLOCK)
-                ON EMP.coveragecode_id = CCV.coveragecode_id
-                AND V.version_id = CCV.version_id
-              WHERE
-              EMP.year_month_key = '202012'
-              GROUP BY
-                  EMP.year,
-                  EMP.month,
-                  V.company_id,
-                  V.companystatelob_id,
-                  V.state_id,
-                  V.lob_id,
-                  EMP.coveragecode_id,
-                  CCV.caption,
-                  policy_id,
-            --            Policyimage_num,
-                  renewal_ver,
-                  unit_num,
-                  policy,
-                  emp.eff_date) xx
-           ON t.lob_id = xx.lob_id
-              AND t.CompanyStateLob_id = xx.CompanyStateLob_id
-              AND xx.eff_date between t.eff_date and t.exp_date
-           INNER JOIN LOB l
-                  ON l.lob_id = xx.lob_id
-           INNER JOIN CompanyNameLink cnl
-                  ON cnl.company_id = xx.company_id
-           INNER JOIN Name n
-                  ON cnl.name_id = n.name_id
-            LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
-            JOIN ProductionBackup.dbo.Coverage c
-              ON c.policy_id = pim.policy_id
-              AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
-            JOIN ProductionBackup.dbo.coveragecode cc
-              on cc.coveragecode_id = c.coveragecode_id
-              and cc.coveragetype = 'PhysicalDamage'
-                  GROUP by c.Policy_id, pim.renewal_ver
-                  HAVING SUM(c.premium_fullterm) > 0) cc1
-                    ON xx.policy_id = cc1.policy_id
-                    AND xx.renewal_ver = cc1.renewal_ver
-            Group by
-        CASE WHEN DATEDIFF(m, '2019-05-01', xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', xx.eff_date) END,
-        CASE WHEN DATEDIFF(m, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(m, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END
-        --CASE WHEN DATEDIFF(m, '2019-05-01', z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', z.eff_date) END
-        ,
-        DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
-        YEAR(xx.eff_date)*100+MONTH(xx.eff_date),
-        n.display_name,
-        state_id,
-        xx.lob_id,
-        lobname,
-        coveragecode_id,
-        caption,
-      --        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
-        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')';;
+              policy_id,
+              renewal_ver,
+              unit_num,
+              policy,
+              eff_date,
+              TotalEarnedPremium,
+              TotalWrittenPremium,
+              TotalUnearnedPremium
+              FROM Customer_Reports.dbo.PolicyPremium
+              ) xx
+            ON t.lob_id = xx.lob_id
+            AND t.CompanyStateLob_id = xx.CompanyStateLob_id
+            AND xx.eff_date between t.eff_date and t.exp_date
+          INNER JOIN LOB l
+            ON l.lob_id = xx.lob_id
+          INNER JOIN CompanyNameLink cnl
+            ON cnl.company_id = xx.company_id
+          INNER JOIN Name n
+            ON cnl.name_id = n.name_id
+          LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
+                      JOIN ProductionBackup.dbo.Coverage c
+                        ON c.policy_id = pim.policy_id
+                        AND pim.policystatuscode_id not in (4, 5, 7, 8, 12, 13, 14)
+                      JOIN ProductionBackup.dbo.coveragecode cc
+                        ON cc.coveragecode_id = c.coveragecode_id
+                        AND cc.coveragetype = 'PhysicalDamage'
+                      GROUP by c.Policy_id, pim.renewal_ver
+                      HAVING SUM(c.premium_fullterm) > 0) cc1
+            ON xx.policy_id = cc1.policy_id
+            AND xx.renewal_ver = cc1.renewal_ver
+          GROUP BY
+            CASE WHEN DATEDIFF(m, '2019-05-01', xx.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, '2019-05-01', xx.eff_date) END,
+            CASE WHEN DATEDIFF(m, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') < 0 THEN 0 ELSE DATEDIFF(m, xx.eff_date, CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01') END,
+            DATEDIFF(m, '2019-05-01', CAST(year as varchar(4)) + '-' + CAST(RIGHT('00' + CAST(month as varchar(2)), 2) as varchar(2)) + '-01'),
+            YEAR(xx.eff_date)*100+MONTH(xx.eff_date),
+            n.display_name,
+            state_id,
+            xx.lob_id,
+            lobname,
+            coveragecode_id,
+            caption,
+            CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+            Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')';;
   }
 
 
