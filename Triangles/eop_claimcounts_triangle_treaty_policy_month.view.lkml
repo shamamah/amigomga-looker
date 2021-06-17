@@ -7,11 +7,12 @@ view: eop_claimcounts_triangle_treaty_policy_month {
 --            DATEDIFF(m, '2019-05-01', ProcessingDate) as trans_month,
             z.company_id,
             z.state_id,
+      v.companystatelob_id,
             z.lob_id,
             CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END as coveragecode_id,
             CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END as caption,
         --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-            CASE WHEN renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+            CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
             Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
             Sum(CASE WHEN ActionType = 'Open' THEN 1 ELSE 0 END) as Reported,
       Sum(CASE WHEN ActionType = 'Reopen' THEN 1 ELSE 0 END) as Reopen,
@@ -44,7 +45,7 @@ FROM  (select
             DATEDIFF(d, rpd.statusdate, cc.statusdate) as ActivityAge,
             Outstanding,
             eff_date,
-      renewal_ver,
+        renewal_ver,
             CASE WHEN LossDate < '2019-07-01' THEN '2019-07-01' ELSE LossDate END as Lossdate,
             COALESCE(ct.Amount, cf.indemnity_paid, 0) as paid
       FROM customer_reports.dbo.claimcounts cc
@@ -92,14 +93,15 @@ FROM  (select
               AND cc.claimant_num = ct.claimant_num
               AND cc.claimfeature_num = ct.claimfeature_num
               AND Year(cc.StatusDate)*100+Month(cc.statusdate) = ct.Trans_Month) z
-      JOIN vVersion v ON
-          v.company_id = z.company_id
-          AND v.lob_id = z.lob_id
-          AND v.state_id = z.state_id
-      JOIN customer_reports.dbo.treaty t ON
-          t.lob_id = z.lob_id
-          AND v.companystatelob_id = t.CompanyStateLob_ID
+    JOIN policyimage PIM
+      ON PIM.policy_id = z.policy_id
+      AND pim.policyimage_num = z.policyimage_num
+    Join version v ON v.version_id = pim.version_id
+    JOIN customer_reports.dbo.treaty t ON
+        t.lob_id = z.lob_id
+        AND v.companystatelob_id = t.CompanyStateLob_ID
           AND z.eff_date between t.eff_date and t.exp_date
+  WHERE t.Treaty_name like '%5/1/2019%' and v.companystatelob_id = 1
     GROUP BY
      Treaty_Month,
     CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
@@ -109,10 +111,11 @@ FROM  (select
         z.company_id,
         z.state_id,
         z.lob_id,
+    v.companystatelob_id,
         CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
         CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,
     --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-        CASE WHEN renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+        CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
         Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
    ;;
   }
