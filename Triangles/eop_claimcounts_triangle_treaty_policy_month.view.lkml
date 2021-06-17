@@ -101,22 +101,21 @@ FROM  (select
         t.lob_id = z.lob_id
         AND v.companystatelob_id = t.CompanyStateLob_ID
           AND z.eff_date between t.eff_date and t.exp_date
-  WHERE t.Treaty_name like '%5/1/2019%' and v.companystatelob_id = 1
     GROUP BY
-     Treaty_Month,
-    CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
-    DATEDIFF(m, t.eff_date, ProcessingDate)  -
-    CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
+      Treaty_Month,
+      CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
+      DATEDIFF(m, t.eff_date, ProcessingDate)  -
+      CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) END,
 --    DATEDIFF(m, '2019-05-01', ProcessingDate),
-        z.company_id,
-        z.state_id,
-        z.lob_id,
-    v.companystatelob_id,
-        CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
-        CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,
-    --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-        CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
+      z.company_id,
+      z.state_id,
+      z.lob_id,
+      v.companystatelob_id,
+      CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
+      CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,
+  --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
+      CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+      Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
    ;;
   }
 
