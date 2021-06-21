@@ -44,13 +44,15 @@ view: pdt_renewals_rollovers {
         PremiumChange as EndorsementPremiumChange,
     premium_fullterm_1 RolloverDownpay,
     lpay.lastpayment,
-    lpay.lastPaydate lastpaydate
+    lpay.lastPaydate lastpaydate,
+    CASE WHEN PIE1.Policy_id is NULL then 'No' ELSE 'Yes' END as EndoinProcess
       FROM ProductionBackup.dbo.Policy P
       INNER JOIN (Select Policy_id, Max(policyimage_num) policyimage_num
           FROM ProductionBackup.dbo.PolicyImage
           WHERE exp_date between '2021-05-01' and GETDATE()+62
             AND Policy_id > -1
             AND policystatuscode_id in (1,3)
+            AND transtype_id <> 11
           GROUP BY Policy_id) MPIM
             ON MPIM.Policy_id = P.Policy_id
       INNER JOIN ProductionBackup.dbo.PolicyImage PIM WITH (NOLOCK)
@@ -88,6 +90,12 @@ view: pdt_renewals_rollovers {
                   where transtype_id = 3
                   group by Policy_id having ABS(sum(premium_chg_written)) > 50)  PIE
           ON PIE.Policy_id = p.policy_id
+    LEFT JOIN (Select Policy_id from ProductionBackup.dbo.PolicyImage
+                  where transtype_id = 3
+          and policy_id > -1
+          and trans_date between GETDATE()-2 and GETDATE()-1
+                  )  PIE1
+          ON PIE1.Policy_id = p.policy_id
       LEFT JOIN ProductionBackup.dbo.Policy pp ON pp.rewrittenfrom_policy_id = p.policy_id
       LEFT JOIN (Select policy_id, Max(policyimage_num) as policyimage_num
                 FROM ProductionBackup.dbo.PolicyImage
@@ -311,6 +319,13 @@ view: pdt_renewals_rollovers {
     sql: ${TABLE}.EndorsementFlag ;;
   }
 
+  dimension: endorsement_in_process {
+    label: "Endorsement Flag"
+    hidden: yes
+    type: string
+    sql: ${TABLE}.EndoinProcess ;;
+  }
+
   measure: cancelled {
     label: "Cancelled_Count"
     type: sum
@@ -346,6 +361,9 @@ view: pdt_renewals_rollovers {
                 CASE WHEN ${TABLE}.Printeddate is NULL AND ${TABLE}.RolledOver = 0 THEN 'No Replacement Document Created'
                    ELSE
                     CASE WHEN ${TABLE}.PrintBatchStatus = 'Unprocessed' THEN 'Document Created by not Batched'
+                      ELSE
+                        CASE WHEN ${TABLE}.EndoinProcess = 'Yes' THEN 'Policy in Endorsement Process'
+                        END
                     END
                 END
           END;;
