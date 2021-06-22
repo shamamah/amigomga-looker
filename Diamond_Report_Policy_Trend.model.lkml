@@ -43,6 +43,32 @@ explore: dt_policy_pif {
       AND ${dt_policy_attachment.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
   }
 
+  join: dt_coverage_liab_phys {
+    view_label: "Policy"
+    type: left_outer
+    relationship: one_to_one
+    fields: [dt_coverage_liab_phys.liab_phys]
+    sql_on: ${dt_coverage_liab_phys.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_coverage_liab_phys.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
+
+  join: dt_vehicle_count {
+    view_label: "Policy"
+    type: left_outer
+    relationship: one_to_one
+    fields: [dt_vehicle_count.multi_car]
+    sql_on: ${dt_vehicle_count.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_vehicle_count.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
+
+  join: dt_driver_count {
+    view_label: "Policy"
+    type: left_outer
+    relationship: one_to_one
+    fields: [dt_driver_count.fdl_usdl]
+    sql_on: ${dt_driver_count.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_driver_count.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
   join: dt_policy_agency {
     view_label: "Agency"
     type: inner
