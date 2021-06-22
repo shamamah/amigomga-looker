@@ -35,11 +35,4 @@ join: policy_image_NB {
   }
 
 
-  join: v_claimtransaction_adjust2 {
-    view_label: "Claim"
-    type: left_outer
-    relationship: many_to_one
-    sql_on: ${policy_image_NB.policy_id} = ${v_claimtransaction_adjust2.policy_id};;
-
   }
-}
