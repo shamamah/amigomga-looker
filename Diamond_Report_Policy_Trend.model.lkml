@@ -69,6 +69,16 @@ explore: dt_policy_pif {
     sql_on: ${dt_driver_count.policy_id} = ${dt_policyimage_num_unique.policy_id}
       AND ${dt_driver_count.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
   }
+
+  join: dt_policy_new_renew {
+    view_label: "Policy"
+    type: left_outer
+    relationship: one_to_one
+    fields: [dt_policy_new_renew.new_renew]
+    sql_on: ${dt_policy_new_renew.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_policy_new_renew.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
+
   join: dt_policy_agency {
     view_label: "Agency"
     type: inner
