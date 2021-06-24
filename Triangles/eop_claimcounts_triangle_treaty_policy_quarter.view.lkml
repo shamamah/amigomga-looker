@@ -1,19 +1,17 @@
 view: eop_claimcounts_triangle_treaty_policy_quarter {
   derived_table: {
-    sql:
-
-    SELECT z.PeriodTrans as treaty_quarter,
+    sql: SELECT z.PeriodTrans as treaty_quarter,
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date)  / 3  END as policy_quarter,
             DATEDIFF(m, t.eff_date, ProcessingDate)  / 3 -
             CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) / 3   END as lag_quarter,
             DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  as trans_quarter,
-          company_id,
-          state_id,
+          z.company_id,
+          z.state_id,
           z.lob_id,
           CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END as coveragecode_id,
           CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END as caption,
       --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-          CASE WHEN renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
+          CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
           Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
         count(1) as Reported,
         Sum(CASE WHEN ActionType = 'Closed' THEN 1 ELSE 0 END) as Closed,
@@ -21,7 +19,7 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
         Sum(CASE WHEN ClosedType = 'CWP' and ActionType = 'Closed' THEN 1 ELSE 0 END) as ClosedPay,
         Sum(CASE WHEN ActionType = 'Open' THEN 1 ELSE 0 END) as Outstanding,
     Sum(CASE WHEN ActionType = 'Reopen' THEN 1 ELSE 0 END) as Reopen,
-          Renewal_ver as RenewalVersion
+          z.Renewal_ver as RenewalVersion
 
        From (Select row_number() over (order by claim_number, claimfeature_num, Claimant_num, ProcessingDate) as id,
         PeriodTrans,
@@ -79,10 +77,10 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
             0 as paid
     FROM Customer_Reports.dbo.ClaimCountsRolling
     WHERE PeriodTrans <> YEAR(GETDATE())*100+MONTH(GETDATE())) a) z
-    JOIN vVersion v ON
-        v.company_id = z.company_id
-        AND v.lob_id = z.lob_id
-        AND v.state_id = z.state_id
+  JOIN policyimage PIM
+      ON PIM.policy_id = z.policy_id
+      AND pim.policyimage_num = z.policyimage_num
+  Join version v ON v.version_id = pim.version_id
     JOIN customer_reports.dbo.treaty t ON
         t.lob_id = z.lob_id
         AND v.companystatelob_id = t.CompanyStateLob_ID
@@ -103,17 +101,16 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
       DATEDIFF(m, t.eff_date, ProcessingDate)  / 3 -
       CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date) / 3   END ,
       DATEDIFF(m, '2019-05-01', ProcessingDate) / 3  ,
-      company_id,
-          state_id,
+      z.company_id,
+          z.state_id,
           z.lob_id,
           CASE WHEN z.lob_id = 1 AND coveragecode_id = 9 THEN 8 ELSE coveragecode_id END,
           CASE WHEN z.lob_id = 1 AND FeatDscr = 'UM PD' THEN 'UM/UIM BI' ELSE FeatDscr END ,
       --          CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
-          CASE WHEN renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
-      Renewal_ver,
+          CASE WHEN z.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+      z.Renewal_ver,
       Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
-
-   ;;
+       ;;
   }
 
   dimension: unique_key  {
