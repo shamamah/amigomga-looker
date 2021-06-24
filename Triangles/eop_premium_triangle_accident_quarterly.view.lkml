@@ -13,15 +13,15 @@ view: eop_premium_triangle_accident_quarterly {
                                         WHEN MONTH(xx.eff_date) in (10,11,12) THEN '4'
                                         END) As Policy_Quarter,
 
-        company_id,
-        state_id,
+        xx.company_id,
+        xx.state_id,
         xx.lob_id,
         lobname,
         coveragecode_id,
         caption,
  --       CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END as LiabOnly_Full,
         CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END as NewRen,
- --       Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')' as Treaty,
+        n.display_name as CompanyName,
         SUM(TotalEarnedPremium) as EarnedPremium,
         SUM(TotalWrittenPremium) as WrittenPremium,
         SUM(TotalUnearnedPremium) as UnearnedPremium
@@ -48,6 +48,13 @@ view: eop_premium_triangle_accident_quarterly {
         ON t.lob_id = xx.lob_id
         AND xx.eff_date between t.eff_date and t.exp_date
         AND xx.companystatelob_id = t.companystatelob_id
+    JOIN ProductionBackup.dbo.CompanyLob cl
+        ON cl.company_id = xx.company_id
+        AND cl.lob_id = xx.lob_id
+       JOIN ProductionBackup.dbo.CompanyNameLink cnl
+        ON cnl.company_id = cl.company_id
+       JOIN ProductionBackup.dbo.Name n
+        ON n.name_id = cnl.name_id
      INNER JOIN LOB l
             ON l.lob_id = xx.lob_id
       LEFT JOIN (Select c.Policy_id, pim.renewal_ver, SUM(c.premium_fullterm) as prem from PolicyImage PIM
@@ -75,14 +82,15 @@ view: eop_premium_triangle_accident_quarterly {
                                         WHEN MONTH(xx.eff_date) in (10,11,12) THEN '4'
                                         END),
 
-        company_id,
-        state_id,
+        xx.company_id,
+        xx.state_id,
         xx.lob_id,
         lobname,
         coveragecode_id,
         caption,
 --        ,CASE WHEN cc1.policy_id is NULL THEN 'Liab' Else 'Phys' END
-        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END
+        CASE WHEN xx.renewal_ver = 1 THEN 'New' ELSE 'Renew' END,
+        n.display_name
 --        Treaty_Name + ' (' + CAST(Treaty_num as varchar(2)) + ')'
  ;;
     }
@@ -148,6 +156,12 @@ view: eop_premium_triangle_accident_quarterly {
       type: number
       hidden: yes
       sql: ${TABLE}.company_id ;;
+    }
+
+    dimension: company_name {
+      label: "Company Name"
+      type: string
+      sql: ${TABLE}.companyname ;;
     }
 
     dimension: state_id {
