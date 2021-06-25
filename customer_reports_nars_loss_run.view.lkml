@@ -20,8 +20,8 @@ view: customer_reports_nars_loss_run {
   }
 
   dimension: program_name {
+    label: "LOB"
     type: string
-    hidden: yes
     sql: ${TABLE}.ProgramName ;;
   }
 
@@ -250,8 +250,8 @@ view: customer_reports_nars_loss_run {
   }
 
   measure: expense_reserve {
+    label: "Expense Reserve"
     type: sum
-    hidden: yes
     sql: ${TABLE}.ExpenseReserve ;;
   }
 
@@ -261,9 +261,9 @@ view: customer_reports_nars_loss_run {
     sql: ${TABLE}.LegalReserve ;;
   }
 
-  dimension: alaereserve {
-    type: string
-    hidden: yes
+  measure: alaereserve {
+    label: "ALAE Reserve"
+    type: sum
     sql: ${TABLE}.ALAEReserve ;;
   }
 
@@ -273,9 +273,9 @@ view: customer_reports_nars_loss_run {
     sql: ${TABLE}.DCCReserve ;;
   }
 
-  dimension: ulaereserve {
-    type: string
-    hidden: yes
+  measure: ulaereserve {
+    label: "ULAE Reserve"
+    type: sum
     sql: ${TABLE}.ULAEReserve ;;
   }
 
@@ -319,9 +319,9 @@ view: customer_reports_nars_loss_run {
     sql: ${TABLE}.OtherRecovery ;;
   }
 
-  dimension: net_incurred {
-    type: string
-    hidden: yes
+  measure: net_incurred {
+    label: "Net Incurred"
+    type: sum
     sql: ${TABLE}.NetIncurred ;;
   }
 
