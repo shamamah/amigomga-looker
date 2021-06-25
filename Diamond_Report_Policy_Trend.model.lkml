@@ -79,6 +79,14 @@ explore: dt_policy_pif {
       AND ${dt_policy_new_renew.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
   }
 
+  join: dt_policyholder_marital_gender {
+    view_label: "Policy"
+    type: left_outer
+    relationship: one_to_one
+    sql_on: ${dt_policyholder_marital_gender.policy_id} = ${dt_policyimage_num_unique.policy_id}
+      AND ${dt_policyholder_marital_gender.policyimage_num} = ${dt_policyimage_num_unique.policyimage_num} ;;
+  }
+
   join: dt_policy_agency {
     view_label: "Agency"
     type: inner
