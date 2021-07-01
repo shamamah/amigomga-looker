@@ -39,7 +39,7 @@ view: eop_premium_triangle_treaty_month {
               TotalWrittenPremium,
               TotalUnearnedPremium
               FROM Customer_Reports.dbo.PolicyPremium
-              WHERE year_month_key < YEAR(GETDATE()-1)*100+MONTH(GETDATE()-1)
+              WHERE year_month_key < YEAR(GETDATE())*100+MONTH(GETDATE())
               ) xx
             ON t.lob_id = xx.lob_id
             AND t.CompanyStateLob_id = xx.CompanyStateLob_id
