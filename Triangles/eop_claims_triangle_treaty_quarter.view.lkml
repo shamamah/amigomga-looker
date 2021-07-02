@@ -41,10 +41,10 @@ view: eop_claims_triangle_treaty_quarter {
                 AND ClaimFeature.claimcoverage_num = ClaimCoverage.claimcoverage_num
             INNER JOIN ClaimControl WITH(NOLOCK)
               ON ClaimFeature.claimcontrol_id = ClaimControl.claimcontrol_id
-            LEFT JOIN Claimfault clf ON clf.Claimfault_id = claimcontrol.claimfault_id
-            LEFT JOIN ClaimControlVehicle CCV
-              ON ClaimControl.ClaimControl_id = CCV.ClaimControl_id
-              AND Vehicle_num <> 0
+            --LEFT JOIN Claimfault clf ON clf.Claimfault_id = claimcontrol.claimfault_id
+            --LEFT JOIN ClaimControlVehicle CCV
+            --  ON ClaimControl.ClaimControl_id = CCV.ClaimControl_id
+            --  AND Vehicle_num <> 0
             Left JOIN PolicyImage WITH(NOLOCK)
               ON ClaimControl.policy_id = PolicyImage.policy_id
                 AND ClaimControl.policyimage_num = PolicyImage.policyimage_num
