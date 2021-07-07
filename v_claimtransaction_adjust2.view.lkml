@@ -201,8 +201,9 @@ view: v_claimtransaction_adjust2 {
       sql: ${TABLE}.ant_expense_recovery ;;
     }
 
-    dimension: ant_salvage {
-      type: string
+    measure: ant_salvage {
+      label: "Anticipated Salvage"
+      type: sum
       sql: ${TABLE}.ant_salvage ;;
     }
 
@@ -213,8 +214,9 @@ view: v_claimtransaction_adjust2 {
       drill_fields: [detail*]
     }
 
-    dimension: ant_subro {
-      type: string
+    measure: ant_subro {
+      label: "Anticipated Subro"
+      type: sum
       sql: ${TABLE}.ant_subro ;;
     }
 
@@ -225,8 +227,9 @@ view: v_claimtransaction_adjust2 {
       drill_fields: [detail*]
     }
 
-    dimension: ant_other_recovery {
-      type: string
+    measure: ant_other_recovery {
+      label: "Anticipated Other"
+      type: sum
       sql: ${TABLE}.ant_other_recovery ;;
     }
 

@@ -219,7 +219,7 @@ explore: claim_feature {
           AND ${claim_transaction.claimtransaction_num} = ${v_claimtransaction_adjust2.claimtransaction_num}
           AND ${v_claimtransaction_adjust2.claimtransactionstatus_id} in (1,4,7);;
       relationship: one_to_many
-      fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage]
+      fields: [indemnity_paid,indemnity_reserve,expense_paid,alae_paid,subro,salvage,ant_other_recovery,ant_salvage,ant_subro]
     }
 
     join: claim_transaction_type {
