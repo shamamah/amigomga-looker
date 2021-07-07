@@ -205,6 +205,7 @@ view: v_claimtransaction_adjust2 {
       label: "Anticipated Salvage"
       type: sum
       sql: ${TABLE}.ant_salvage ;;
+      drill_fields: [detail*]
     }
 
     measure: salvage {
@@ -218,6 +219,7 @@ view: v_claimtransaction_adjust2 {
       label: "Anticipated Subro"
       type: sum
       sql: ${TABLE}.ant_subro ;;
+      drill_fields: [detail*]
     }
 
     measure: subro {
@@ -276,14 +278,16 @@ view: v_claimtransaction_adjust2 {
 
     set: detail {
       fields: [
-        policy_id,
-        claimcontrol_id,
+        policy_image.policy,
+        claim_control.claim_number,
         indemnity_reserve,
         indemnity_paid,
         expense_paid,
         alae_paid,
         salvage,
         subro,
+        ant_subro,
+        ant_salvage,
         eff_date_date
       ]
     }

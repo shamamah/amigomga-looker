@@ -65,7 +65,7 @@ explore: claim_feature {
     sql_on: ${claim_control.policy_id} = ${policy_image.policy_id}
       AND ${claim_control.policyimage_num} = ${policy_image.policyimage_num};;
     relationship: one_to_many
-    fields: [eff_month, eff_quarter, eff_year]
+    fields: [eff_month, eff_quarter, eff_year, policy]
   }
 
   join: policy_image_name_link {
