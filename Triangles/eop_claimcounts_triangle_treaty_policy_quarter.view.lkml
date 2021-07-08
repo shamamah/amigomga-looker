@@ -86,15 +86,19 @@ view: eop_claimcounts_triangle_treaty_policy_quarter {
         AND v.companystatelob_id = t.CompanyStateLob_ID
         AND z.eff_date between t.eff_date and t.exp_date
     JOIN
-      (SELECT lob_id, periodtrans from customer_reports.dbo.TreatyQuarter
+      (SELECT lob_id, periodtrans, z.companyid from customer_reports.dbo.TreatyQuarter z
           UNION ALL
         -- check for mid-period
-      SELECT lob_id, maxperiod from customer_reports.dbo.TreatyQuarter tq
-        JOIN (SELECT lobid, max(periodtrans) maxperiod from Customer_Reports.dbo.ClaimCountsRolling
-            GROUP by lobid) m ON m.maxperiod between year(qstartdate)*100+month(qstartdate) and year(qstartdate)*100+month(qstartdate)+1
-            AND m.lobid = tq.lob_id) tq
+      SELECT lob_id, maxperiod, tq.companyid from customer_reports.dbo.TreatyQuarter tq
+        JOIN (SELECT lobid, max(periodtrans) maxperiod, companyid
+        from Customer_Reports.dbo.ClaimCountsRolling
+            GROUP by lobid, companyid) m
+            ON m.maxperiod between year(qstartdate)*100+month(qstartdate) and year(qstartdate)*100+month(qstartdate)+1
+            AND m.lobid = tq.lob_id
+            AND m.companyid = tq.companyid) tq
         ON tq.lob_id = z.lob_id
         AND tq.periodtrans = z.periodtrans
+        AND tq.companyid = z.company_id
     GROUP BY
       z.PeriodTrans ,
       CASE WHEN DATEDIFF(m, t.eff_date, z.eff_date) / 3  < 0 THEN 0 ELSE DATEDIFF(m, t.eff_date, z.eff_date)  / 3  END ,
