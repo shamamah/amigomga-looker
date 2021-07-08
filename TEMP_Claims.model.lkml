@@ -30,6 +30,13 @@ explore: claim_feature {
     relationship: one_to_many
   }
 
+  join: claim_fault {
+    type: left_outer
+    view_label: "Claim Detail"
+    sql_on: ${claim_fault.claimfault_id} = ${claim_control.claimfault_id};;
+    relationship: one_to_many
+  }
+
   join: claim_close_reason {
     type: inner
     view_label: "Claim Detail"

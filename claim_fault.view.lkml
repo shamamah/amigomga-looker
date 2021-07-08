@@ -10,7 +10,6 @@ view: claim_fault {
 
   dimension: dscr {
     label: "At-Fault"
-    view_label: "Claim"
     type: string
     sql: ${TABLE}.dscr ;;
   }
