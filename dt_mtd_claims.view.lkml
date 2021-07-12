@@ -37,8 +37,9 @@ view: dt_mtd_claims {
         INNER JOIN ClaimControl WITH(NOLOCK)
           ON ClaimFeature.claimcontrol_id = ClaimControl.claimcontrol_id
         INNER JOIN Claimfault clf ON clf.Claimfault_id = claimcontrol.claimfault_id
-        LEFT JOIN (Select top 1 * from ClaimControlVehicle
-                  order by claimcontrolvehicle_num) CCV
+        LEFT JOIN ClaimControlVehicle CCV
+--        LEFT JOIN (Select top 1 * from ClaimControlVehicle
+--                  order by claimcontrolvehicle_num) CCV
           ON ClaimControl.ClaimControl_id = CCV.ClaimControl_id
           AND Vehicle_num <> 0
         Left JOIN PolicyImage WITH(NOLOCK)
