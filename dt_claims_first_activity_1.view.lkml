@@ -43,6 +43,13 @@ view: dt_claims_first_activity_1 {
     sql: ${TABLE}.opened ;;
   }
 
+  dimension: closed_same_month {
+    label: "Closed Same Month"
+    type: string
+    sql: CASE WHEN YEAR(${TABLE}.opened)*100+MONTH(${TABLE}.opened) =
+    YEAR(${TABLE}.closed)*100+MONTH(${TABLE}.closed) THEN 'Yes' ELSE 'No' END;;
+  }
+
   dimension: days_open_after_reported {
     label: "Days Open After Reported"
     type: number
