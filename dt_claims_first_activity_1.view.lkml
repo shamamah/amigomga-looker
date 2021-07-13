@@ -43,6 +43,34 @@ view: dt_claims_first_activity_1 {
     sql: ${TABLE}.opened ;;
   }
 
+  dimension: days_open_after_reported {
+    label: "Days Open After Reported"
+    type: number
+    sql: DATEDIFF(d, claim_control.reported_date, ${TABLE}.opened) ;;
+  }
+
+  dimension: days_reported_after_loss {
+    label: "Days Reported After Loss"
+    type: number
+    sql: DATEDIFF(d, claim_control.loss_date, claim_control.reported_date) ;;
+  }
+
+  measure: avg_days_reported_after_loss {
+    label: "Average Days Reported After Loss"
+    type: average
+    value_format: "0.00"
+    sql: ${days_reported_after_loss} ;;
+    drill_fields: [claim_stat*]
+  }
+
+  measure: avg_days_open_after_reported {
+    label: "Average Days Open After Reported"
+    type: average
+    value_format: "0.00"
+    sql: ${days_open_after_reported};;
+    drill_fields: [claim_stat*]
+  }
+
   dimension_group: first_close_date {
     label: "First Close"
     type: time
